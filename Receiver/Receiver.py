@@ -1,10 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import logging, json
+from time import gmtime, strftime
 
 app = Flask(__name__)
 
 
-tempObj = 'n/a'
+tempObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'n/a'}
+timeout = {'timeout':"1"}
+
 @app.route('/receiver', methods=['POST', 'GET'])
 def receiver():
     if request.method == 'POST':
@@ -14,8 +17,31 @@ def receiver():
         logging.warning(tempObj['temperature'])
         return tempObj
     if request.method == 'GET':
-        return f'<h1>Current temp: {tempObj["temperature"]}</h1>'
+        return tempObj
+        # return f'<h1>Current temp: {str(tempObj["temperature"])}</h1>'
 
+# This returns the html page when /latest is called by the client
+@app.route('/latest')
+def index():
+    return render_template('current_temp.html')
+
+# gets the update period value from the webpage
+@app.route('/get_timeout')
+def get_update():
+    global timeout
+    print("********* get_timeout called *********")
+    print(f"********* {timeout} *********")
+    return timeout
+
+@app.route('/set_timeout', methods=['POST'])
+def set_timeout():
+    t = request.data
+    print("********* set_timeout called *********")
+    global timeout
+    timeout = json.loads(t)
+    print(f"********* {timeout['timeout']} *********")
+    return timeout
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
+    # app.run(host='0.0.0.0', port=8081)
+    app.run(host='127.0.0.1', port=8081)

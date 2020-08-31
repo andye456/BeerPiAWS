@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Current Temp</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+
+
+            let $form = $('<form/>', {action: '', method: 'POST'});
+            $form.append('<input type="text"id="timeout" value="1">');
+            $form.append('<input type="button" id="submit" value="Submit">');
+            $('#update_form').append($form);
+            $('#submit').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: '/set_timeout',
+                    dataType: 'application/json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({timeout: $('#timeout').val()}),
+                    success: function (data, status) {
+                        console.log(data);
+                        console.log(status);
+                    }
+                });
+            });
+            update_time = $('#timeout').val() * 1000;
+            setInterval(function () {
+                $.ajax({
+                    url: 'http://localhost:8081/receiver',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function (result, status) {
+                        $('#time').text(result.timestamp);
+                        $('#content').text(result.temperature);
+                        console.log(result);
+                        console.log(status);
+                    }
+                });
+            }, update_time);
+        });
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="jumbotron">
+
+        <h1>Temperature: </h1>
+        <div class="row">
+            <div class="col" id="time"></div>
+        </div>
+        <div class="row">
+            <div class="col" id="content"></div>
+        </div>
+        <h2>Update period</h2>
+        <div id="update_form"></div>
+    </div>
+</div>
+
+
+</body>
+</html>
