@@ -7,15 +7,18 @@ Temp_File = "w1_slave"
 host="http://localhost"
 port="8081"
 send_endpoint="receiver"
-receive_endpoint = "get_timeout"
+receive_endpoint = "get_interval"
 
 send_url = f'{host}:{port}/{send_endpoint}'
 get_url = f'{host}:{port}/{receive_endpoint}'
+
+# Reads the temperature from the directory where the sensor writes it
 def read_temp_probe():
     with open(Temp_File, "r") as f:
         lines = f.readlines()
     return lines[1].split("=")[1]
 
+# POSTs the data to the receiver on AWS
 def send_data(json_data):
     try:
         r = requests.post(send_url, json=json_data)
@@ -23,7 +26,7 @@ def send_data(json_data):
     except ConnectionRefusedError as e:
         print("connection refused")
 
-# Calls the endpoint to get the timeout value
+# GETs the interval from the receiver
 def get_data():
     r = requests.get(get_url)
     print(r.text)
@@ -35,11 +38,12 @@ def get_data():
 
 while True:
     data = float(read_temp_probe())
+    # Puts the current temp and timestamp into a JSON object.
     dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data/1000:.2f}'}
     jsonObj = json.dumps(dataObj)
     print(jsonObj)
     # Send data to the AWS server to display on the web page
     send_data(jsonObj)
-    # Get the update frequency
+    # Get the update interval
     t = get_data()
     time.sleep(int(t))

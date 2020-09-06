@@ -26,20 +26,20 @@ def index():
     return render_template('current_temp.html')
 
 # gets the update period value from the webpage
-@app.route('/get_timeout')
-def get_update():
+@app.route('/get_interval')
+def get_interval():
     global timeout
-    print("********* get_timeout called *********")
+    print("********* get_interval called *********")
     print(f"********* {timeout} *********")
     return timeout
 
-@app.route('/set_timeout', methods=['POST'])
-def set_timeout():
+@app.route('/set_interval', methods=['POST'])
+def set_interval():
     t = request.data
-    print("********* set_timeout called *********")
+    print("********* set_interval called *********")
     global timeout
     timeout = json.loads(t)
-    print(f"********* {timeout['timeout']} *********")
+    print(f"********* {timeout} *********")
     return timeout
 
 if __name__ == "__main__":

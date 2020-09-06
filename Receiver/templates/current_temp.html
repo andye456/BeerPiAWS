@@ -11,27 +11,14 @@
             crossorigin="anonymous"></script>
     <script>
         $(document).ready(function () {
-
+            update_time = 1000;
 
             let $form = $('<form/>', {action: '', method: 'POST'});
             $form.append('<input type="text"id="timeout" value="1">');
             $form.append('<input type="button" id="submit" value="Submit">');
             $('#update_form').append($form);
-            $('#submit').click(function () {
-                $.ajax({
-                    type: 'POST',
-                    url: '/set_timeout',
-                    dataType: 'application/json',
-                    contentType: 'application/json',
-                    data: JSON.stringify({timeout: $('#timeout').val()}),
-                    success: function (data, status) {
-                        console.log(data);
-                        console.log(status);
-                    }
-                });
-            });
-            update_time = $('#timeout').val() * 1000;
-            setInterval(function () {
+
+            var doUpdate = function () {
                 $.ajax({
                     url: 'http://localhost:8081/receiver',
                     contentType: 'application/json',
@@ -39,11 +26,34 @@
                     success: function (result, status) {
                         $('#time').text(result.timestamp);
                         $('#content').text(result.temperature);
-                        console.log(result);
-                        console.log(status);
                     }
                 });
-            }, update_time);
+                console.log(update_time);
+            }
+            interval = setInterval(doUpdate, update_time);
+
+            $('#submit').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: '/set_interval',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({timeout: $('#timeout').val()}),
+                    success: function (data, status) {
+                        update_time = data.timeout * 1000;
+                        console.log(update_time);
+                        console.log(data);
+                        clearInterval(interval);
+                        interval = setInterval(doUpdate, update_time);
+
+                    },
+                    error: function (status) {
+                        console.log("error " + status);
+                    }
+                });
+            });
+
+
         });
     </script>
 </head>
