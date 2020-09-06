@@ -1,9 +1,11 @@
 import requests, json
 from time import gmtime, strftime
 import time
+import RPi.GPIO as GPIO
 
-# Temp_File = "/sys/bus/w1/devices/28-021553902fff/w1_slave"
-Temp_File = "w1_slave"
+
+Temp_File = "/sys/bus/w1/devices/28-01193c3b3149/w1_slave"
+#Temp_File = "w1_slave"
 host="http://localhost"
 port="8081"
 send_endpoint="receiver"
@@ -11,6 +13,27 @@ receive_endpoint = "get_interval"
 
 send_url = f'{host}:{port}/{send_endpoint}'
 get_url = f'{host}:{port}/{receive_endpoint}'
+
+# Relay pins
+RLY1 = 17
+RLY2 = 27
+RLY3 = 22
+
+GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
+GPIO.setup(RLY1, GPIO.OUT)
+GPIO.setup(RLY2, GPIO.OUT)
+GPIO.setup(RLY3, GPIO.OUT)
+
+# Switches on the relay
+def set_relay_on(RLY):
+    print(f'Turning {RLY} on')
+    GPIO.output(RLY, False)
+
+# Switch the relay off
+def set_relay_off(RLY):
+    print(f'Turning {RLY} off')
+    GPIO.output(RLY, True)
+    
 
 # Reads the temperature from the directory where the sensor writes it
 def read_temp_probe():
@@ -36,6 +59,7 @@ def get_data():
     except TypeError as t:
         return j
 
+    '''
 while True:
     data = float(read_temp_probe())
     # Puts the current temp and timestamp into a JSON object.
@@ -47,3 +71,16 @@ while True:
     # Get the update interval
     t = get_data()
     time.sleep(int(t))
+    '''
+i=0
+while i < 5:
+    set_relay_on(RLY1)
+    set_relay_on(RLY2)
+    set_relay_on(RLY3)
+    time.sleep(1)
+    set_relay_off(RLY1)
+    set_relay_off(RLY2)
+    set_relay_off(RLY3)
+    time.sleep(1)
+    i+=1
+GPIO.cleanup()
