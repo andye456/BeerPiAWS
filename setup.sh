@@ -13,9 +13,12 @@ echo `which python3`
 # create the virtual env
 if [[ `python -V | grep 2.7` ]]
 then
+  echo "default python in 2.7 using python3"
   python3 -m venv venv
 else
-  [[ -r /usr/local/bin/python3.6 ]] &&  /usr/local/bin/python3.6 -m venv venv
+
+  [[ -r /usr/local/bin/python3.6 ]] && echo "Using python /usr/local/bin/python3.6" && /usr/local/bin/python3.6 -m venv venv
 fi
+echo "Switching to venv"
 . venv/bin/activate
-pip install -r requirements.txt
+[[ $? -eq 0 ] && pip install -r requirements.txt || exit 1
