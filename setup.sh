@@ -21,4 +21,4 @@ else
 fi
 echo "Switching to venv"
 . venv/bin/activate
-[[ $? -eq 0 ] && pip install -r requirements.txt || exit 1
+[[ $? -eq 0 ]] && pip install -r requirements.txt || exit 1
