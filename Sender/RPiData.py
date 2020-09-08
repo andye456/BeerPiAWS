@@ -7,7 +7,6 @@ import RPi.GPIO as GPIO
 from threading import Thread
 
 
-# Temp_File = "/sys/bus/w1/devices/28-01193c3b3149/w1_slave"
 Temp_File = "w1_slave"
 host="http://localhost"
 port="8081"
