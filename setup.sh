@@ -11,7 +11,7 @@ if [[ `python -V | grep 2.7` ]]
 then
   python3 -m venv venv
 else
-  python -m venv venv
+  [[ -r /usr/local/bin/python3.6 ]] &&  /usr/local/bin/python3.6 -m venv venv
 fi
 # activate the venv
 . venv/bin/activate
