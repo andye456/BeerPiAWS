@@ -10,7 +10,6 @@ from threading import Thread
 # Temp_File = "/sys/bus/w1/devices/28-01193c3b3149/w1_slave"
 Temp_File = "w1_slave"
 host="http://localhost"
-host="http://35.176.56.125"
 port="8081"
 send_endpoint="receiver"
 receive_endpoint = "get_interval"
