@@ -7,7 +7,8 @@ sed -i s/localhost/0.0.0.0/ Receiver/Receiver.py
 # Change the requirements to ref the correct version of RPi.GPIO
 sed s/.*GPIO.*/RPi.GPIO==0.7.0/ requirements.txt
 # create the virtual env
-if [[ `python -V | grep 2.7` ]] then
+if [[ `python -V | grep 2.7` ]]
+then
   python3 -m venv venv
 else
   python -m venv venv
