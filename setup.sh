@@ -13,5 +13,5 @@ then
 else
   [[ -r /usr/local/bin/python3.6 ]] &&  /usr/local/bin/python3.6 -m venv venv
 fi
-# activate the venv
 . venv/bin/activate
+pip install -r requirements.txt
