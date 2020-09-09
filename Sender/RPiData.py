@@ -26,10 +26,11 @@ RLY2 = 27
 RLY3 = 22
 RLY4 = 18
 
+GPIO.cleanup()
 GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
 GPIO.setup(RLY1, GPIO.OUT)
-GPIO.setup(RLY2, GPIO.OUT)
-GPIO.setup(RLY3, GPIO.OUT)
+# GPIO.setup(RLY2, GPIO.OUT)
+# GPIO.setup(RLY3, GPIO.OUT)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,6 +40,8 @@ relay_state = {'isRelayOn': False}
 # Set the relay to on or off
 def _set_relay_on(relay: str, state: bool):
     global relay_state
+    # Seems a bit weird that passing false to the output sends it high - so invert it
+    state = not state
     relay_state['isRelayOn'] = state
     logging.debug("isRelayOn ----- " + str(relay_state['isRelayOn']))
     logging.debug(f'Turning {relay} {state}')
@@ -102,7 +105,6 @@ def control_relay():
             _set_relay_on(RLY1, False)
         time.sleep(1)
 
-# GPIO.cleanup()
 if __name__ == '__main__':
     Thread(target=temperature_control).start()
     Thread(target=control_relay).start()
