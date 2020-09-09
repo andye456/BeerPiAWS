@@ -40,11 +40,11 @@ relay_state = {'isRelayOn': False}
 # Set the relay to on or off
 def _set_relay_on(relay: str, state: bool):
     global relay_state
-    # Seems a bit weird that passing false to the output sends it high - so invert it
-    state = not state
     relay_state['isRelayOn'] = state
     logging.debug("isRelayOn ----- " + str(relay_state['isRelayOn']))
     logging.debug(f'Turning {relay} {state}')
+    # Seems a bit weird that passing false to the output sends it high - so invert it
+    state = not state
     GPIO.output(relay, state)
 
 
