@@ -5,6 +5,7 @@ from time import gmtime, strftime
 import time
 import RPi.GPIO as GPIO
 from threading import Thread
+import traceback
 
 
 Temp_File = "w1_slave"
@@ -12,13 +13,15 @@ host="http://localhost"
 port="8081"
 send_endpoint="receiver"
 receive_endpoint = "get_interval"
+temp_endpoint = "get_temp"
 
 # Temperature limits
-desired_temp = 20
-margin = 0.5
+desired_temp = 28
+margin = 0.1
 
 send_url = f'{host}:{port}/{send_endpoint}'
 get_url = f'{host}:{port}/{receive_endpoint}'
+get_temp =  f'{host}:{port}/{temp_endpoint}'
 
 # Relay pins
 RLY1 = 17
@@ -32,7 +35,7 @@ GPIO.setup(RLY1, GPIO.OUT)
 # GPIO.setup(RLY2, GPIO.OUT)
 # GPIO.setup(RLY3, GPIO.OUT)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # This is a 'global' - done as a mutable (right way to do it)
 relay_state = {'isRelayOn': False}
@@ -56,7 +59,7 @@ def _read_temp_probe():
             lines = f.readlines()
         return int(lines[1].split("=")[1])/1000
     except IndexError as ie:
-        logging.warn(ie)
+        logging.warning(ie)
 
 
 # POSTs the data to the receiver on AWS
@@ -76,6 +79,20 @@ def _get_data():
         return j['timeout']
     except TypeError as t:
         return j
+
+def _get_required_temp():
+    r = requests.get(get_temp)
+    logging.info("required_temp returned from endpoint = "+r.text)
+    try:
+        j = json.loads(r.text)
+        return j['temp']
+    except TypeError as t:
+        return j
+    except Exception as e:
+        logging.debug("_get_required_temp error!!! "+str(e))
+        logging.debug(traceback.format_exc())
+        return desired_temp
+
 
 # Reads the temp probe and creates a data object to send to the AWS receiver end point.
 # Gets the relay state and reports it back to UI
@@ -99,9 +116,12 @@ def control_relay():
         logging.debug("state..... "+str(relay_state['isRelayOn']))
         current_temp = _read_temp_probe()
         logging.debug("current_temp = "+str(current_temp))
-        if current_temp <= desired_temp - margin:
+        # global desired_temp
+        dtemp = _get_required_temp()
+        logging.debug("control_relay::dtemp  = "+str(dtemp))
+        if current_temp <= float(dtemp) - margin:
             _set_relay_on(RLY1, True)
-        elif current_temp >= desired_temp + margin:
+        elif current_temp >= float(dtemp) + margin:
             _set_relay_on(RLY1, False)
         time.sleep(1)
 

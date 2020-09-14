@@ -1,9 +1,8 @@
 import random, time
 
 up = True
-temp = 160
-min = 170
-max = 220
+min = 250
+max = 300
 step=5
 while True:
     # temp = random.randint(160, 220)
@@ -19,4 +18,4 @@ while True:
                          f"50 01 80 80 1f ff 80 80 d2 t={temp}00"])
         print(temp)
 
-        time.sleep(1)
+        time.sleep(5)

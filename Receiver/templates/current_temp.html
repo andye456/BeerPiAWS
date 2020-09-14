@@ -12,25 +12,38 @@
     <script>
         $(document).ready(function () {
             update_time = 1000;
-
             let $form = $('<form/>', {action: '', method: 'POST'});
-            $form.append('<input type="text"id="timeout" value="1">');
+            $form.append('<input type="text" id="timeout" value="1">');
             $form.append('<input type="button" id="submit" value="Submit">');
             $('#update_form').append($form);
 
+            let $form2 = $('<form/>', {action: '', method: 'POST'});
+            $form2.append('<input type="text" id="temp">');
+            $form2.append('<input type="button" id="submit2" value="Submit">');
+            $('#temp_form').append($form2);
+
+            $.ajax({
+                url: '/get_temp',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (result, status) {
+                    $('#temp').val(result.temp);
+                }
+            });
+
             var doUpdate = function () {
                 $.ajax({
-                    url: 'http://localhost:8081/receiver',
-                    url: 'http://35.176.56.125:8081/receiver',
+                    url: '/receiver',
                     contentType: 'application/json',
                     dataType: 'json',
                     success: function (result, status) {
                         $('#time').text(result.timestamp);
                         $('#content').text(result.temperature);
+                        $('#isrelayon').text(result.isrelayon);
                     }
                 });
                 console.log(update_time);
-            }
+            };
             interval = setInterval(doUpdate, update_time);
 
             $('#submit').click(function () {
@@ -55,22 +68,53 @@
             });
 
 
+            $('#submit2').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: '/set_temp',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({temp: $('#temp').val()}),
+                    success: function (data, status) {
+                        update_temp = data.temp * 1;
+                        console.log(update_temp);
+                        console.log(data);
+                    },
+                    error: function (status) {
+                        console.log("error " + status);
+                    }
+                });
+            });
+
+
         });
     </script>
 </head>
 <body>
 <div class="container">
+    <br>
     <div class="jumbotron">
-
-        <h1>Temperature: </h1>
+        <h1>Beer Temperature Control</h1>
+        <h3>Date/time: </h3>
         <div class="row">
             <div class="col" id="time"></div>
         </div>
+        <h3>Temperature</h3>
         <div class="row">
             <div class="col" id="content"></div>
         </div>
-        <h2>Update period</h2>
-        <div id="update_form"></div>
+        <h3>Heater on</h3>
+        <div class="row">
+            <div class="col" id="isrelayon"></div>
+        </div>
+        <h3>Update period</h3>
+        <div class="row">
+            <div class="col" id="update_form"></div>
+        </div>
+        <h3>Required temperature</h3>
+        <div class="row">
+            <div class="col" id="temp_form"></div>
+        </div>
     </div>
 </div>
 
