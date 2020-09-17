@@ -32,9 +32,9 @@ RLY4 = 18
 GPIO.cleanup()
 GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
 GPIO.setup(RLY1, GPIO.OUT)
-GPIO.setup(RLY2, GPIO.OUT)
-GPIO.setup(RLY3, GPIO.OUT)
-GPIO.setup(RLY4, GPIO.OUT)
+# GPIO.setup(RLY2, GPIO.OUT)
+# GPIO.setup(RLY3, GPIO.OUT)
+# GPIO.setup(RLY4, GPIO.OUT)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -121,9 +121,9 @@ def control_relay():
         dtemp = _get_required_temp()
         logging.debug("control_relay::dtemp  = "+str(dtemp))
         if current_temp <= float(dtemp) - margin:
-            _set_relay_on(RLY2, True)
+            _set_relay_on(RLY1, True)
         elif current_temp >= float(dtemp) + margin:
-            _set_relay_on(RLY2, False)
+            _set_relay_on(RLY1, False)
         time.sleep(1)
 
 if __name__ == '__main__':
