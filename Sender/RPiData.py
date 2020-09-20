@@ -14,6 +14,7 @@ port="8081"
 send_endpoint="receiver"
 receive_endpoint = "get_interval"
 temp_endpoint = "get_temp"
+relay_endpoint = 'get_relay'
 
 # Temperature limits
 desired_temp = 28
@@ -22,6 +23,7 @@ margin = 0.1
 send_url = f'{host}:{port}/{send_endpoint}'
 get_url = f'{host}:{port}/{receive_endpoint}'
 get_temp =  f'{host}:{port}/{temp_endpoint}'
+get_relay_url = f'{host}:{port}/{relay_endpoint}'
 
 # Relay pins
 RLY1 = 17
@@ -32,24 +34,40 @@ RLY4 = 18
 GPIO.cleanup()
 GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
 GPIO.setup(RLY1, GPIO.OUT)
-# GPIO.setup(RLY2, GPIO.OUT)
-# GPIO.setup(RLY3, GPIO.OUT)
-# GPIO.setup(RLY4, GPIO.OUT)
+GPIO.setup(RLY2, GPIO.OUT)
+GPIO.setup(RLY3, GPIO.OUT)
+GPIO.setup(RLY4, GPIO.OUT)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # This is a 'global' - done as a mutable (right way to do it)
-relay_state = {'isRelayOn': False}
+relay_1_state = {'isRelayOn': False}
+relay_2_state = {'isRelayOn': False}
+relay_3_state = {'isRelayOn': False}
+relay_4_state = {'isRelayOn': False}
 
 # Set the relay to on or off
 def _set_relay_on(relay: str, state: bool):
-    global relay_state
-    relay_state['isRelayOn'] = state
-    logging.debug("isRelayOn ----- " + str(relay_state['isRelayOn']))
+    # These variables maintain state to send to server
+    global relay_1_state
+    global relay_2_state
+    global relay_3_state
+    global relay_4_state
+    if relay == "RLY1":
+        relay_1_state['isRelayOn'] = state
+    if relay == "RLY2":
+        relay_2_state['isRelayOn'] = state
+    if relay == "RLY3":
+        relay_3_state['isRelayOn'] = state
+    if relay == "RLY4":
+        relay_4_state['isRelayOn'] = state
+
+    logging.debug("_set_relay_on::relay_1_state['isRelayOn']----- " + str(relay_1_state['isRelayOn']))
     logging.debug(f'Turning {relay} {state}')
     # Seems a bit weird that passing false to the output sends it high - so invert it
     state = not state
-    GPIO.output(relay, state)
+    # relay here needs to be the number not the name of the relay
+    GPIO.output(eval(relay), state)
 
 
 # Reads the temperature from the directory where the sensor writes it
@@ -94,6 +112,22 @@ def _get_required_temp():
         logging.debug(traceback.format_exc())
         return desired_temp
 
+# This polls the relay_state end point and gets the json that contains the state of the relays that are set from the check boxes
+def get_relay_state():
+    while True:
+        # Get the current relay instruction from the end point
+        for i in range(2,5):
+            logging.debug("GET: "+get_relay_url+"/"+str(i))
+            state = requests.get(get_relay_url+"/"+str(i))
+            j = json.loads(state.text)
+            _set_relay_on("RLY"+str(i), j[str(i)]['state'])
+        time.sleep(1)
+
+def get_current_relay_states():
+    global relay_2_stat
+    global relay_3_state
+    global relay_4_state
+    return relay_2_state, relay_3_state, relay_4_state
 
 # Reads the temp probe and creates a data object to send to the AWS receiver end point.
 # Gets the relay state and reports it back to UI
@@ -102,8 +136,8 @@ def temperature_control():
     while True:
         data = float(_read_temp_probe())
         # Puts the current temp and timestamp into a JSON object.
-        logging.debug("isRelayOn >>>>> "+str(relay_state['isRelayOn']))
-        dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data:.2f}', 'isrelayon':relay_state['isRelayOn']}
+        logging.debug("isRelayOn >>>>> " + str(relay_1_state['isRelayOn']))
+        dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data:.2f}', 'isrelayon':relay_1_state['isRelayOn']}
         jsonObj = json.dumps(dataObj)
         logging.info(jsonObj)
         # Send data to the AWS server to display on the web page
@@ -112,20 +146,25 @@ def temperature_control():
         t = _get_data()
         time.sleep(int(t))
 
-def control_relay():
+def control_temp_relay():
     while True:
-        logging.debug("state..... "+str(relay_state['isRelayOn']))
-        current_temp = _read_temp_probe()
-        logging.debug("current_temp = "+str(current_temp))
+        logging.debug(f"control_temp_relay::relay_1_state['isRelayOn'] {str(relay_1_state['isRelayOn'])}")
+        current_temp = _read_temp_probe() # This is only for relay 1
+        logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
         # global desired_temp
         dtemp = _get_required_temp()
-        logging.debug("control_relay::dtemp  = "+str(dtemp))
+        logging.debug("control_temp_relay::dtemp  = "+str(dtemp))
         if current_temp <= float(dtemp) - margin:
-            _set_relay_on(RLY1, True)
+            _set_relay_on("RLY1", True)
         elif current_temp >= float(dtemp) + margin:
-            _set_relay_on(RLY1, False)
+            _set_relay_on("RLY1", False)
         time.sleep(1)
 
+
 if __name__ == '__main__':
+    # gets the temperature from the temp probe in a thread
     Thread(target=temperature_control).start()
-    Thread(target=control_relay).start()
+    # uses the temperature to control the main relay
+    Thread(target=control_temp_relay).start()
+    # reads the state of the check boxes and sets the other relays accordingly
+    Thread(target=get_relay_state).start()

@@ -4,12 +4,14 @@ from time import gmtime, strftime
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 tempObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'n/a'}
 timeout = {'timeout':"1"}
 
 temp =  {'temp':"25"}
+relay_state= {"2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
+
 
 @app.route('/receiver', methods=['POST', 'GET'])
 def receiver():
@@ -17,7 +19,6 @@ def receiver():
         req_data = request.get_json()
         global tempObj
         tempObj = json.loads(req_data)
-        print(tempObj['temperature'])
         logging.warning(tempObj['isrelayon'])
         return tempObj
     if request.method == 'GET':
@@ -33,35 +34,47 @@ def index():
 @app.route('/get_interval')
 def get_interval():
     global timeout
-    logging.info("********* get_interval called *********")
-    logging.info(f"********* {timeout} *********")
+    logging.debug("********* get_interval called *********")
+    logging.info(f"/get_interval timeout = {timeout}")
     return timeout
 
 @app.route('/get_temp')
 def get_temp():
     global temp
-    logging.info("********* get_temp called *********")
-    logging.info(f"********* {temp} *********")
+    logging.debug("********* get_temp called *********")
+    logging.info(f"/get_temp {temp} ")
     return temp
+
+@app.route('/get_current_status')
+def get_current_status():
+    logging.debug(f"current_state {str(relay_state['2']['state'])},{str(relay_state['3']['state'])},{str(relay_state['4']['state'])}")
+    return f"{str(relay_state['2']['state'])},{str(relay_state['3']['state'])},{str(relay_state['4']['state'])}"
 
 @app.route('/set_interval', methods=['POST'])
 def set_interval():
     t = request.data
-    logging.info("********* set_interval called *********")
+    logging.debug("********* set_interval called *********")
     logging.debug(t)
     global timeout
     timeout = json.loads(t)
-    print(f"********* {timeout} *********")
     return timeout
+
+# Sets the relay from the checkboxes on the front page
+@app.route('/set_relay/<num>', methods=['POST'])
+def set_relay(num):
+    global relay_state
+    st = json.loads(request.data)
+    relay_state[num]['state']=st['state']
+    logging.debug(f"+=+=+=+=+=+=+= {request.data} set_relay {num} {relay_state}")
+    return relay_state[num]
+
 
 @app.route('/set_temp',methods=['POST'])
 def set_temp():
     tp = request.data
-    logging.info("********* set_temp called *********")
     logging.debug(tp)
     global temp
     temp = json.loads(tp)
-    print(f"********* {temp} *********")
     return temp
 
 

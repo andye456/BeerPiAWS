@@ -12,6 +12,7 @@
     <script>
         $(document).ready(function () {
             update_time = 1000;
+            const relay_state = [];
             let $form = $('<form/>', {action: '', method: 'POST'});
             $form.append('<input type="text" id="timeout" value="1">');
             $form.append('<input type="button" id="submit" value="Submit">');
@@ -28,6 +29,20 @@
                 dataType: 'json',
                 success: function (result, status) {
                     $('#temp').val(result.temp);
+                }
+            });
+
+            // Get the initial relay states from the server
+            // Gets the status of the relays from the RPi
+            $.ajax({
+                url: '/get_current_status',
+                contentType: 'text/plain',
+                dataType: 'text',
+                success: function (result, status) {
+                    console.log(result);
+                    $('#relay2').prop("checked",(result.split(",")[0] == 'True'));
+                    $('#relay3').prop("checked",(result.split(",")[1] == 'True'));
+                    $('#relay4').prop("checked",(result.split(",")[2] == 'True'));
                 }
             });
 
@@ -87,7 +102,46 @@
             });
 
 
+
+            // Sets the relay state form a checkbox event.
+            function set_relays(rly) {
+                // for (let i = 2; i < 5; i++) {
+                console.log("relay loop")
+
+                if ($('#relay' + rly).prop('checked')) {
+                    relay_state[rly] = true;
+                } else {
+                    relay_state[rly] = false;
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: '/set_relay/'+rly,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({relay: rly, state: relay_state[rly]}),
+                    success: function (data, status) {
+                        console.log(data)
+                    },
+                    error: function (status) {
+                        console.log("error " + status);
+                    }
+                });
+                // }
+            }
+
+            $('#relay2').change(function () {
+                set_relays(2)
+            });
+            $('#relay3').change(function () {
+                set_relays(3)
+            });
+            $('#relay4').change(function () {
+                set_relays(4)
+            });
+
+
         });
+
     </script>
 </head>
 <body>
@@ -114,6 +168,26 @@
         <h3>Required temperature</h3>
         <div class="row">
             <div class="col" id="temp_form"></div>
+        </div>
+        <h3>Relay States</h3>
+        <div class="row">
+            <div class="col"></div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay2">
+                    <label class="custom-control-label" for="relay2">Relay 2</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay3">
+                    <label class="custom-control-label" for="relay3">Relay 3</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay4">
+                    <label class="custom-control-label" for="relay4">Relay 4</label>
+                </div>
+            </div>
         </div>
     </div>
 </div>
