@@ -123,11 +123,11 @@ def get_relay_state():
             _set_relay_on("RLY"+str(i), j[str(i)]['state'])
         time.sleep(1)
 
-def get_current_relay_states():
-    global relay_2_stat
-    global relay_3_state
-    global relay_4_state
-    return relay_2_state, relay_3_state, relay_4_state
+# def get_current_relay_states():
+#     global relay_2_stat
+#     global relay_3_state
+#     global relay_4_state
+#     return relay_2_state, relay_3_state, relay_4_state
 
 # Reads the temp probe and creates a data object to send to the AWS receiver end point.
 # Gets the relay state and reports it back to UI

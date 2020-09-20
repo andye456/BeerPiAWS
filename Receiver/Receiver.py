@@ -68,6 +68,22 @@ def set_relay(num):
     logging.debug(f"+=+=+=+=+=+=+= {request.data} set_relay {num} {relay_state}")
     return relay_state[num]
 
+# get the relay states
+@app.route('/get_relay/<num>', methods=['GET'])
+def get_relay(num):
+    global relay_state
+
+    if num == 2:
+        logging.debug(f"************ get_relay::relay_state = {relay_state['2']}")
+        return relay_state['2']
+    if num == 3:
+        logging.debug(f"************ get_relay::relay_state = {relay_state['3']}")
+        return relay_state['3']
+    if num == 4:
+        logging.debug(f"************ get_relay::relay_state = {relay_state['4']}")
+        return relay_state['4']
+    return relay_state
+
 
 @app.route('/set_temp',methods=['POST'])
 def set_temp():
