@@ -8,7 +8,8 @@ from threading import Thread
 import traceback
 
 
-Temp_File = "w1_slave"
+temp_file1 = "w1_slave"
+temp_file2 = "w1_slave"
 host="http://localhost"
 port="8081"
 send_endpoint="receiver"
@@ -74,9 +75,13 @@ def _set_relay_on(relay: str, state: bool):
 # return: the temperature formatted to a float %.2d
 def _read_temp_probe():
     try:
-        with open(Temp_File, "r") as f:
+        with open(temp_file1, "r") as f:
             lines = f.readlines()
-        return int(lines[1].split("=")[1])/1000
+            t1 = int(lines[1].split("=")[1])/1000
+        with open(temp_file2, "r") as f:
+            lines = f.readlines()
+            t2 = int(lines[1].split("=")[1])/1000
+        return t1,t2
     except IndexError as ie:
         logging.warning(ie)
 
@@ -134,10 +139,12 @@ def get_relay_state():
 # Gets the update period from the UI and updates the update period of the UI.
 def temperature_control():
     while True:
-        data = float(_read_temp_probe())
+        data,data2 = _read_temp_probe()
+        data = float(data)
+        data2 = float(data2)
         # Puts the current temp and timestamp into a JSON object.
         logging.debug("isRelayOn >>>>> " + str(relay_1_state['isRelayOn']))
-        dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data:.2f}', 'isrelayon':relay_1_state['isRelayOn']}
+        dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data:.2f}','temperature2':f'{data2:.2f}', 'isrelayon':relay_1_state['isRelayOn']}
         jsonObj = json.dumps(dataObj)
         logging.info(jsonObj)
         # Send data to the AWS server to display on the web page
@@ -149,7 +156,7 @@ def temperature_control():
 def control_temp_relay():
     while True:
         logging.debug(f"control_temp_relay::relay_1_state['isRelayOn'] {str(relay_1_state['isRelayOn'])}")
-        current_temp = _read_temp_probe() # This is only for relay 1
+        current_temp = _read_temp_probe()[0] # This is only for relay 1
         logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
         # global desired_temp
         dtemp = _get_required_temp()
