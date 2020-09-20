@@ -8,8 +8,8 @@ from threading import Thread
 import traceback
 
 
-temp_file1 = "w1_slave"
-temp_file2 = "w1_slave"
+temp_file1 = "w1_slave1"
+temp_file2 = "w1_slave2"
 host="http://localhost"
 port="8081"
 send_endpoint="receiver"
