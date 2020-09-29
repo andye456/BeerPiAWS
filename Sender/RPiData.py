@@ -42,7 +42,7 @@ GPIO.setup(RLY2, GPIO.OUT)
 GPIO.setup(RLY3, GPIO.OUT)
 GPIO.setup(RLY4, GPIO.OUT)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # This is a 'global' - done as a mutable (right way to do it)
 relay_1_state = {'isRelayOn': False}
@@ -223,6 +223,8 @@ def get_camera():
         elif j['cmd'] == "video":
             video = _take_video()
             _scp_file(video)
+        time.sleep(1)
+
 
 if __name__ == '__main__':
     # gets the temperature from the temp probe in a thread

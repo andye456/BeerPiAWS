@@ -4,7 +4,7 @@ from time import gmtime, strftime
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 tempObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'n/a'}
 timeout = {'timeout':"1"}
