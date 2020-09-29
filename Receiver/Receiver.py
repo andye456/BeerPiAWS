@@ -4,7 +4,7 @@ from time import gmtime, strftime
 
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 tempObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'n/a'}
 timeout = {'timeout':"1"}
@@ -12,6 +12,7 @@ timeout = {'timeout':"1"}
 temp =  {'temp':"25"}
 relay_state= {"2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
 
+camera_type = {"cmd":None}
 
 @app.route('/receiver', methods=['POST', 'GET'])
 def receiver():
@@ -26,8 +27,9 @@ def receiver():
         # return f'<h1>Current temp: {str(tempObj["temperature"])}</h1>'
 
 # This returns the html page when /latest is called by the client
-@app.route('/latest')
+@app.route('/')
 def index():
+    logging.debug("++++++++++++++++++++++"+app.root_path)
     return render_template('current_temp.html')
 
 # gets the update period value from the webpage
@@ -45,6 +47,7 @@ def get_temp():
     logging.info(f"/get_temp {temp} ")
     return temp
 
+# This get the state of all the relays, the state is a global variable held in this script
 @app.route('/get_current_status')
 def get_current_status():
     logging.debug(f"current_state {str(relay_state['2']['state'])},{str(relay_state['3']['state'])},{str(relay_state['4']['state'])}")
@@ -93,7 +96,28 @@ def set_temp():
     temp = json.loads(tp)
     return temp
 
+@app.route('/set_camera/<type>', methods=['POST'])
+def set_camera(type):
+    global camera_type
+    camera_type['cmd'] = type
+    return camera_type['cmd']
+
+# Called by the RPi to get the camera photo request that has been set from the web page.
+@app.route('/get_camera', methods=['GET'])
+def get_camera():
+    logging.debug("************ get_camera ************")
+    global camera_type
+    logging.debug(camera_type)
+    cpy = camera_type.copy()
+    logging.debug(cpy)
+    # Reset the camera command so that multiple photos aren't taken
+    camera_type['cmd'] = None
+    logging.debug(camera_type)
+    logging.debug(cpy)
+
+    return cpy
 
 if __name__ == "__main__":
     # app.run(host='0.0.0.0', port=8081)
     app.run(host='localhost', port=8081)
+

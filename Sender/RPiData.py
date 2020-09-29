@@ -1,5 +1,6 @@
 import logging
-
+from datetime import datetime
+import subprocess
 import requests, json
 from time import gmtime, strftime
 import time
@@ -16,6 +17,7 @@ send_endpoint="receiver"
 receive_endpoint = "get_interval"
 temp_endpoint = "get_temp"
 relay_endpoint = 'get_relay'
+camera_endpoint = 'get_camera'
 
 # Temperature limits
 desired_temp = 28
@@ -25,6 +27,7 @@ send_url = f'{host}:{port}/{send_endpoint}'
 get_url = f'{host}:{port}/{receive_endpoint}'
 get_temp =  f'{host}:{port}/{temp_endpoint}'
 get_relay_url = f'{host}:{port}/{relay_endpoint}'
+camera = f'{host}:{port}/{camera_endpoint}'
 
 # Relay pins
 RLY1 = 17
@@ -39,7 +42,7 @@ GPIO.setup(RLY2, GPIO.OUT)
 GPIO.setup(RLY3, GPIO.OUT)
 GPIO.setup(RLY4, GPIO.OUT)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # This is a 'global' - done as a mutable (right way to do it)
 relay_1_state = {'isRelayOn': False}
@@ -128,12 +131,6 @@ def get_relay_state():
             _set_relay_on("RLY"+str(i), j[str(i)]['state'])
         time.sleep(1)
 
-# def get_current_relay_states():
-#     global relay_2_stat
-#     global relay_3_state
-#     global relay_4_state
-#     return relay_2_state, relay_3_state, relay_4_state
-
 # Reads the temp probe and creates a data object to send to the AWS receiver end point.
 # Gets the relay state and reports it back to UI
 # Gets the update period from the UI and updates the update period of the UI.
@@ -143,7 +140,6 @@ def temperature_control():
         data = float(data)
         data2 = float(data2)
         # Puts the current temp and timestamp into a JSON object.
-        logging.debug("isRelayOn >>>>> " + str(relay_1_state['isRelayOn']))
         dataObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'{data:.2f}','temperature2':f'{data2:.2f}', 'isrelayon':relay_1_state['isRelayOn']}
         jsonObj = json.dumps(dataObj)
         logging.info(jsonObj)
@@ -168,6 +164,66 @@ def control_temp_relay():
         time.sleep(1)
 
 
+def _take_photo():
+    logging.debug("TAKING PHOTO")
+    today = datetime.now()
+    date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
+    photo_name = '/home/pi/Pictures/snap.jpg'
+    # photo_name = '/home/pi/Pictures/snap-'+date_string+'.jpg'
+    width = "640"
+    height = "480"
+    try:
+        subprocess.run(['/usr/bin/raspistill', '-o', photo_name, '-w', width, '-h', height])
+    except FileNotFoundError as f:
+        logging.debug(">>>>> TAKE PHOTO"+photo_name)
+    return photo_name
+
+def _take_video():
+    # raspivid -o Videos/test200K.h264 -t 5000 -w 640 -h 480 -fps 10 -b 200000 -a 12
+    logging.debug("TAKING VIDEO")
+    today = datetime.now()
+    date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
+    video_dir='/home/pi/Videos'
+    raw_name = video_dir+'/vid.h264'
+    video_name = video_dir+'/vid.mp4'
+    # video_name = video_dir+'/vid-'+date_string+'.jpg'
+    width = "640"
+    height = "480"
+    vid_time = "5000"
+    fps = "10"
+    bandwidth = "200000"
+    try:
+        subprocess.run(['/usr/bin/raspivid', '-o', raw_name, '-t', vid_time, '-w', width, '-h', height, '-fps', fps, '-b', bandwidth, '-a', '12'])
+        # Convert video into mp4
+        subprocess.run(['MP4Box', '-add', raw_name, video_name])
+    except FileNotFoundError as f:
+        logging.debug(">>>>> TAKE VIDEO"+video_name)
+    return video_name
+
+def _scp_file(file):
+    username="bitnami"
+    remote="35.176.56.125"
+    dir="/home/bitnami/BeerPiAWS/Receiver/static"
+    try:
+        subprocess.run(['/usr/bin/scp', '-i', '/home/pi/LightsailDefaultKey-eu-west-2.pem', file, username+"@"+remote+":"+dir])
+    except FileNotFoundError as f:
+        logging.debug('/usr/bin/scp -i /home/pi/LightsailDefaultKey-eu-west-2.pem '+ file+" "+ username+"@"+remote+":"+dir)
+
+
+def get_camera():
+    while True:
+        logging.debug("GET: " + camera )
+        camera_cmd = requests.get(camera)
+        j = json.loads(camera_cmd.text)
+        j['cmd']
+        logging.debug(f".......................Command {j['cmd']}")
+        if j['cmd'] == "photo":
+            photo = _take_photo()
+            _scp_file(photo)
+        elif j['cmd'] == "video":
+            video = _take_video()
+            _scp_file(video)
+
 if __name__ == '__main__':
     # gets the temperature from the temp probe in a thread
     Thread(target=temperature_control).start()
@@ -175,3 +231,5 @@ if __name__ == '__main__':
     Thread(target=control_temp_relay).start()
     # reads the state of the check boxes and sets the other relays accordingly
     Thread(target=get_relay_state).start()
+    # reads the camera requests
+    Thread(target=get_camera).start()

@@ -40,9 +40,9 @@
                 dataType: 'text',
                 success: function (result, status) {
                     console.log(result);
-                    $('#relay2').prop("checked",(result.split(",")[0] == 'True'));
-                    $('#relay3').prop("checked",(result.split(",")[1] == 'True'));
-                    $('#relay4').prop("checked",(result.split(",")[2] == 'True'));
+                    $('#relay2').prop("checked", (result.split(",")[0] == 'True'));
+                    $('#relay3').prop("checked", (result.split(",")[1] == 'True'));
+                    $('#relay4').prop("checked", (result.split(",")[2] == 'True'));
                 }
             });
 
@@ -103,7 +103,6 @@
             });
 
 
-
             // Sets the relay state form a checkbox event.
             function set_relays(rly) {
                 // for (let i = 2; i < 5; i++) {
@@ -116,7 +115,7 @@
                 }
                 $.ajax({
                     type: 'POST',
-                    url: '/set_relay/'+rly,
+                    url: '/set_relay/' + rly,
                     dataType: 'json',
                     contentType: 'application/json',
                     data: JSON.stringify({relay: rly, state: relay_state[rly]}),
@@ -130,6 +129,26 @@
                 // }
             }
 
+            const camera = (type) => {
+                console.log()
+                $.ajax({
+                    type: 'POST',
+                    url: '/set_camera/' + type,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify({camera: type}),
+                    done: function (data, status) {
+                        console.log("camera data");
+                        console.log(data)
+                    },
+                    fail: function (status, thrown) {
+                        console.log("camera error");
+                        console.log(status);
+                        console.log(thrown);
+                    }
+                });
+            };
+
             $('#relay2').change(function () {
                 set_relays(2)
             });
@@ -140,7 +159,13 @@
                 set_relays(4)
             });
 
-
+            // The photo/video buttons
+            $('#photo1').click(function () {
+                camera("photo");
+            });
+            $('#video1').click(function () {
+                camera("video");
+            });
         });
 
     </script>
@@ -194,9 +219,40 @@
                 </div>
             </div>
         </div>
+        <h3>Take Images</h3>
+        <div class="row">
+            <div class="col">
+                <div>
+                    <div>
+                        <input type="submit" class="btn btn-primary" id="photo1">
+                        <label for="image1">Still Image</label>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col">
+                            <img width="640" height="480" src="/static/snap.jpg">
+                        </div>
+                    </div>
+                    <br>
+                    <div>
+                        <input type="submit" class="btn btn-primary" id="video1">
+                        <label for="video1">Video Clip</label>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col">
+                            <video  preload="true" width="640" height="480" controls>
+                                <source src="/static/vid.mp4"  type="video/mp4">
+                            </video>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
-
-
 </body>
 </html>
