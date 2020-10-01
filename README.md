@@ -97,3 +97,40 @@ def _send_data(json_data):
         logging.error("connection refused")
 ```
 
+# Web Sockets
+### Rewrite
+The above method up to now has been OK, polling the server for updates that are  made from 
+web page input, but this is very chatty and the RPi is polling the AWS server every second for 
+updates.
+
+A better way is to use Web Sockets, or more specifically, socket.io. Socket.io implements WebSockets
+if it can, otherwise it defaults to a polling type algorithm. Anyway what this means is that the 
+data is sent to the RPi, using the connection established by the RPi, only when it is needed. This will 
+cut down on the data that is exchanged with the AWS server.
+
+### Server (AWS)
+Flask_socketio
+
+https://flask-socketio.readthedocs.io/en/latest/
+
+This is chosen as it supports web page endpoints as per the existing code
+### Client (RPi)
+python-socketio
+
+https://python-socketio.readthedocs.io/en/latest/client.html
+
+Supports Client side socket.io to connect to the Server.
+
+### Connection
+* The RPi makes a connection to the http address of the socket.io Server
+* The Server then returns data to the socket.io receiver running on the RPi
+
+It's as simple as that.
+
+## HOW TO:
+What are the changes that are to be made to existing code.
+
+ 1. Keep the Web Page end points, but remove the setting of globals for the relay states 
+ (unless state needs to be maintained)
+ 2. Remove all the end points that were polled by the RPi for updates.
+ 3. In the web endpoints add emit functions to send data to the socket.io receivers on the RPi.

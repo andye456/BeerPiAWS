@@ -147,7 +147,8 @@ def temperature_control():
         _send_data(jsonObj)
         # Get the update interval
         t = _get_data()
-        time.sleep(int(t))
+        for i in range(int(t)):
+            time.sleep(1)
 
 def control_temp_relay():
     while True:
@@ -186,7 +187,7 @@ def _take_video():
     video_dir='/home/pi/Videos'
     raw_name = video_dir+'/vid.h264'
     video_name = video_dir+'/vid.mp4'
-    # video_name = video_dir+'/vid-'+date_string+'.jpg'
+    # video_name = video_dir+'/vid-'+date_string+'.h264'
     width = "640"
     height = "480"
     vid_time = "5000"
@@ -195,15 +196,17 @@ def _take_video():
     try:
         subprocess.run(['/usr/bin/raspivid', '-o', raw_name, '-t', vid_time, '-w', width, '-h', height, '-fps', fps, '-b', bandwidth, '-a', '12'])
         # Convert video into mp4
-        subprocess.run(['MP4Box', '-add', raw_name, video_name])
+        subprocess.run(['MP4Box', '-add', raw_name, video_name, '-new'])
     except FileNotFoundError as f:
-        logging.debug(">>>>> TAKE VIDEO"+video_name)
+        logging.info(">>>>> TAKE VIDEO"+video_name)
     return video_name
 
 def _scp_file(file):
     username="bitnami"
     remote="35.176.56.125"
     dir="/home/bitnami/BeerPiAWS/Receiver/static"
+    logging.info(f"Sending file {file} to {username}@{remote}:{dir}")
+
     try:
         subprocess.run(['/usr/bin/scp', '-i', '/home/pi/LightsailDefaultKey-eu-west-2.pem', file, username+"@"+remote+":"+dir])
     except FileNotFoundError as f:
