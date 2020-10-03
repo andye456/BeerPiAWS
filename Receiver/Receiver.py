@@ -1,10 +1,10 @@
 from flask import Flask, request, render_template
 import logging, json
 from time import gmtime, strftime
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
-
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 tempObj = {'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()), 'temperature':f'n/a'}
 timeout = {'timeout':"1"}
@@ -13,6 +13,7 @@ temp =  {'temp':"25"}
 relay_state= {"2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
 
 camera_type = {"cmd":None}
+
 
 @app.route('/receiver', methods=['POST', 'GET'])
 def receiver():
@@ -117,7 +118,9 @@ def get_camera():
 
     return cpy
 
+
+
 if __name__ == "__main__":
-    # app.run(host='0.0.0.0', port=8081)
-    app.run(host='localhost', port=8081)
+    app.run(host='0.0.0.0', port=8081)
+    # app.run(host='localhost', port=8081)
 

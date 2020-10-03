@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Beer Control</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+            crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            /** MAIN JAVASCRIPT **/
+                // const host = "http://35.176.56.125:5000";
+            const host = "http://localhost:5000";
+            const socket = io(host);
+            var today = new Date();
+            var time = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() +" "+ today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            $('#time').text(time);
+            $('#update_period_button').click(() => {
+                socket.emit("set_update_period", $('#update_period').val());
+            });
+
+            $('#required_temp_button').click(() => {
+                socket.emit("set_required_temp", $('#required_temp').val());
+            });
+
+            socket.on("update_req_period", (period) => {
+                $('#update_period').val(period);
+            });
+
+            socket.on("update_req_temp", (temp) => {
+                $('#required_temp').val(temp);
+            });
+
+            /** END MAIN JAVASCRIPT **/
+        });
+    </script>
+</head>
+<body>
+<!--
+End points in Reciver.py:
+/get_temp
+   gets the stateful temp back from teh server to display in the form
+/get_current_status
+   Get the initial relay states from the server
+   Gets the status of the relays from the RPi
+/receiver
+   Receives data from the RPi and updates the divs
+/set_interval
+   Updates refresh interval in the UI and on the RPI
+/set_temp
+   Sets the required temperature
+-->
+
+<button onClick="sendMsg()">Hit Me</button>
+
+
+<script>
+
+
+    // function sendMsg() {
+    //     socket.emit("message", "HELLO WORLD");
+    // }
+    //
+    // socket.on('receiver', function (data) {
+    //     // Update the divs
+    // });
+</script>
+<div class="container">
+    <br>
+    <div class="jumbotron">
+        <h1>Beer Temperature Control</h1>
+        <h3>Date/time: </h3>
+        <div class="row">
+            <!--            Output-->
+            <div class="col" id="time">
+            </div>
+        </div>
+        <h3>Temperature p1</h3>
+        <div class="row">
+            <!--            Output-->
+            <div class="col" id="temp1"></div>
+        </div>
+        <h3>Temperature p2</h3>
+        <div class="row">
+            <!--            Output-->
+            <div class="col" id="temp2"></div>
+        </div>
+        <h3>Heater on</h3>
+        <div class="row">
+            <!--            Output-->
+            <div class="col" id="is_heater_relay_on"></div>
+        </div>
+        <h3>Update period</h3>
+        <div class="row">
+            <!--            Input-->
+            <div class="col">
+                <input type="text" id="update_period">
+                <button id="update_period_button">Set</button>
+            </div>
+
+        </div>
+        <h3>Required temperature p1</h3>
+        <div class="row">
+            <!--            Input-->
+            <div class="col">
+                <input type="text" id="required_temp">
+                <button id="required_temp_button">Set</button>
+            </div>
+        </div>
+        <h3>Relay States</h3>
+        <div class="row">
+            <div class="col">
+                <!--                Inputs/Outputs-->
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay2">
+                    <label class="custom-control-label" for="relay2">Relay 2</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay3">
+                    <label class="custom-control-label" for="relay3">Relay 3</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay4">
+                    <label class="custom-control-label" for="relay4">Relay 4</label>
+                </div>
+            </div>
+        </div>
+        <h3>Take Images</h3>
+        <div class="row">
+            <div class="col">
+                <div>
+                    <!--                     Input-->
+                    <div>
+                        <input type="submit" class="btn btn-primary" id="photo1">
+                        <label for="image1">Still Image</label>
+                    </div>
+                    <br>
+                    <!--                     Output-->
+                    <div class="row">
+                        <div class="col">
+                            <img width="640" height="480" src="/static/snap.jpg">
+                        </div>
+                    </div>
+                    <br>
+                    <!--                    Input-->
+                    <div>
+                        <input type="submit" class="btn btn-primary" id="video1">
+                        <label for="video1">Video Clip</label>
+                    </div>
+                    <br>
+                    <!--                    Output-->
+                    <div class="row">
+                        <div class="col">
+                            <video preload="true" width="640" height="480" controls>
+                                <source src="/static/vid.mp4" type="video/mp4">
+                            </video>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
