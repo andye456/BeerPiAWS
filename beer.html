@@ -15,62 +15,79 @@
     <script>
         $(document).ready(function () {
             /** MAIN JAVASCRIPT **/
+
                 // const host = "http://35.176.56.125:5000";
             const host = "http://localhost:5000";
             const socket = io(host);
-            var today = new Date();
-            var time = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() +" "+ today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-            $('#time').text(time);
+            // Updates the current time every second
+            setInterval(function () {
+                var today = new Date();
+                var time = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + " " + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+                $('#time').text(time);
+            }, 1000);
+
+            // Sends the update period to the RPi via the SocketServer
             $('#update_period_button').click(() => {
                 socket.emit("set_update_period", $('#update_period').val());
             });
 
+            // Sends the required temperature to the Rpi via the SocketServer
             $('#required_temp_button').click(() => {
                 socket.emit("set_required_temp", $('#required_temp').val());
             });
 
+
+            $('#relay2').change(function () {
+                set_relays();
+            });
+            $('#relay3').change(function () {
+                set_relays();
+            });
+            $('#relay4').change(function () {
+                set_relays();
+            });
+
+            function set_relays() {
+                let relay_states = {
+                    1: {"state": $('#relay1').prop("checked")},
+                    2: {"state": $('#relay2').prop("checked")},
+                    3: {"state": $('#relay3').prop("checked")},
+                    4: {"state": $('#relay4').prop("checked")}
+                }
+
+                socket.emit('set_relay_state',relay_states);
+            }
+
+            // Receives the update period value that is stored in the SocketServer
             socket.on("update_req_period", (period) => {
                 $('#update_period').val(period);
             });
 
-            socket.on("update_req_temp", (temp) => {
+            // Receives the required temp value that is stored in the Socket Server
+            socket.on("set_required_temp", (temp) => {
                 $('#required_temp').val(temp);
             });
 
+
+            socket.on("update_temps", (temps) => {
+                $('#temp1').text(temps.t1);
+                $('#temp2').text(temps.t2);
+            });
+
+            // Receives the relay states that are stored in the SocketServer
+            socket.on("update_relay_state", (states_json) => {
+                console.log("Updating relay states")
+                $('#relay1').prop("checked", (states_json[1].state == true));
+                $('#relay2').prop("checked", (states_json[2].state == true));
+                $('#relay3').prop("checked", (states_json[3].state == true));
+                $('#relay4').prop("checked", (states_json[4].state == true));
+            });
             /** END MAIN JAVASCRIPT **/
         });
     </script>
 </head>
 <body>
-<!--
-End points in Reciver.py:
-/get_temp
-   gets the stateful temp back from teh server to display in the form
-/get_current_status
-   Get the initial relay states from the server
-   Gets the status of the relays from the RPi
-/receiver
-   Receives data from the RPi and updates the divs
-/set_interval
-   Updates refresh interval in the UI and on the RPI
-/set_temp
-   Sets the required temperature
--->
 
-<button onClick="sendMsg()">Hit Me</button>
-
-
-<script>
-
-
-    // function sendMsg() {
-    //     socket.emit("message", "HELLO WORLD");
-    // }
-    //
-    // socket.on('receiver', function (data) {
-    //     // Update the divs
-    // });
-</script>
 <div class="container">
     <br>
     <div class="jumbotron">
@@ -91,11 +108,7 @@ End points in Reciver.py:
             <!--            Output-->
             <div class="col" id="temp2"></div>
         </div>
-        <h3>Heater on</h3>
-        <div class="row">
-            <!--            Output-->
-            <div class="col" id="is_heater_relay_on"></div>
-        </div>
+
         <h3>Update period</h3>
         <div class="row">
             <!--            Input-->
@@ -116,6 +129,11 @@ End points in Reciver.py:
         <h3>Relay States</h3>
         <div class="row">
             <div class="col">
+                <!--                Inputs/Outputs-->
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="relay1">
+                    <label class="custom-control-label" for="relay1">Relay 1 (Heater)</label>
+                </div>
                 <!--                Inputs/Outputs-->
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="relay2">

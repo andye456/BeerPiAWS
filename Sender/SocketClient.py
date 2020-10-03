@@ -22,7 +22,7 @@ print("---------------")
 # Global variables
 
 # Temperature limits
-desired_temp = 28
+desired_temp = ""
 margin = 0.1
 
 # host="http://35.176.56.125:5000"
@@ -54,7 +54,6 @@ relay_4_state = {'isRelayOn': False}
 @sio.event
 def connect():
     logging.info('Connection estabished')
-    sio.emit("")
 
 
 # This is called by the SocketServer to set the update period
@@ -70,6 +69,13 @@ def set_required_temp(required_temp):
     logging.debug(f"Setting required temp to: {required_temp}")
     global desired_temp
     desired_temp = int(required_temp)
+
+@sio.on("set_relay_state")
+def set_relay_state(relay_states):
+    logging.debug(relay_states)
+    _set_relay_on("RLY2",relay_states['2']['state'])
+    _set_relay_on("RLY3",relay_states['3']['state'])
+    _set_relay_on("RLY4",relay_states['4']['state'])
 
 # Reads the temperatures from the probes
 def _read_temp_probe():
@@ -93,6 +99,10 @@ def _set_relay_on(relay: str, state: bool):
     global relay_4_state
     if relay == "RLY1":
         relay_1_state['isRelayOn'] = state
+        sio.emit('update_relay_state', {"1": {"state": relay_1_state['isRelayOn']},
+                                        "2": {"state": relay_2_state['isRelayOn']},
+                                        "3": {"state": relay_3_state['isRelayOn']},
+                                        "4": {"state": relay_4_state['isRelayOn']}})
     if relay == "RLY2":
         relay_2_state['isRelayOn'] = state
     if relay == "RLY3":
@@ -118,10 +128,17 @@ def control_temp_relay():
             _set_relay_on("RLY1", True)
         elif current_temp >= float(desired_temp) + margin:
             _set_relay_on("RLY1", False)
-        time.sleep(1)
+        time.sleep(1) # This is always 1 second as we want to keep the water temp accurate
 
-
-@sio.event
+def send_temp_to_server():
+    time.sleep(2)
+    while True:
+        temp1, temp2 = _read_temp_probe()
+        temp1 = float(temp1)
+        temp2 = float(temp2)
+        sio.emit('set_temp_from_probes',{"t1":temp1,"t2":temp2})
+        for i in range(update_period):
+            time.sleep(1)
 def dissconnect():
     logging.info('diconnected')
 
@@ -129,6 +146,7 @@ def dissconnect():
 if __name__ == "__main__":
     sio.connect(host)
     # uses the temperature to control the main relay
-    # Thread(target=control_temp_relay).start()
+    Thread(target=control_temp_relay).start()
+    Thread(target=send_temp_to_server).start()
 
 
