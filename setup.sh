@@ -1,15 +1,15 @@
 #!/bin/bash
 # Change the target address from localhost to AWS IP address
-sed -i s/localhost/35.176.56.125/ Sender/RPiData.py
+sed -i s/localhost/35.176.56.125/ Sender/SocketClient.py
 # Change the webserver address to 0.0.0.0
-sed -i s/localhost/0.0.0.0/ Receiver/Receiver.py
+sed -i s/localhost/0.0.0.0/ Receiver/SockerServer.py
 # Change the requirements to ref the correct version of RPi.GPIO
 sed -i s/.*GPIO.*/RPi.GPIO==0.7.0/ requirements.txt
 # Change the test temp file to the real one
-sed -i 's/w1_slave1/\/sys\/bus\/w1\/devices\/28-01193c3b3149\/w1_slave/' Sender/RPiData.py
-sed -i 's/w1_slave2/\/sys\/bus\/w1\/devices\/28-01193c5f3e7f\/w1_slave/' Sender/RPiData.py
+sed -i 's/w1_slave1/\/sys\/bus\/w1\/devices\/28-01193c3b3149\/w1_slave/' Sender/SocketClient.py
+sed -i 's/w1_slave2/\/sys\/bus\/w1\/devices\/28-01193c5f3e7f\/w1_slave/' Sender/SocketClient.py
 # change the localhost int he html to pevent CORS error
-sed -i s/localhost/35.176.56.125/ Receiver/templates/current_temp.html
+sed -i s/localhost/35.176.56.125/ Receiver/templates/beer.html
 # Check the version of python avilable
 echo `which python3`
 # create the virtual env
