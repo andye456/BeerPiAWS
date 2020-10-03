@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel('DEBUG')
@@ -77,6 +77,17 @@ def set_relay_state(relay_states):
     _set_relay_on("RLY3",relay_states['3']['state'])
     _set_relay_on("RLY4",relay_states['4']['state'])
 
+@sio.on("camera")
+def camera(cmd):
+    logging.debug(f"camera called to take {cmd}")
+    if cmd == "photo":
+        photo = _take_photo()
+        _scp_file(photo)
+    elif cmd == "video":
+        video = _take_video()
+        _scp_file(video)
+
+
 # Reads the temperatures from the probes
 def _read_temp_probe():
     try:
@@ -120,13 +131,13 @@ def _set_relay_on(relay: str, state: bool):
 # Turns R1 on and off depending on the desired temp - reads temp every second
 def control_temp_relay():
     while True:
-        logging.debug(f"control_temp_relay::relay_1_state['isRelayOn'] {str(relay_1_state['isRelayOn'])}")
         current_temp = _read_temp_probe()[0] # This is only for relay 1
-        logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
-        logging.debug("control_temp_relay::dtemp  = "+str(desired_temp))
-        if current_temp <= float(desired_temp) - margin:
+        # logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
+        # logging.debug("control_temp_relay::dtemp  = "+str(desired_temp))
+        # logging.debug(f"relay_1_state['isRelayOn'] {relay_1_state['isRelayOn']}")
+        if current_temp <= float(desired_temp) - margin and not relay_1_state['isRelayOn']:
             _set_relay_on("RLY1", True)
-        elif current_temp >= float(desired_temp) + margin:
+        elif current_temp >= float(desired_temp) + margin and relay_1_state['isRelayOn']:
             _set_relay_on("RLY1", False)
         time.sleep(1) # This is always 1 second as we want to keep the water temp accurate
 
@@ -139,6 +150,54 @@ def send_temp_to_server():
         sio.emit('set_temp_from_probes',{"t1":temp1,"t2":temp2})
         for i in range(update_period):
             time.sleep(1)
+
+def _take_photo():
+    logging.debug("TAKING PHOTO")
+    today = datetime.now()
+    date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
+    photo_name = '/home/pi/Pictures/snap.jpg'
+    # photo_name = '/home/pi/Pictures/snap-'+date_string+'.jpg'
+    width = "640"
+    height = "480"
+    try:
+        subprocess.run(['/usr/bin/raspistill', '-o', photo_name, '-w', width, '-h', height])
+    except FileNotFoundError as f:
+        logging.debug(">>>>> TAKE PHOTO"+photo_name)
+    return photo_name
+
+def _take_video():
+    # raspivid -o Videos/test200K.h264 -t 5000 -w 640 -h 480 -fps 10 -b 200000 -a 12
+    logging.debug("TAKING VIDEO")
+    today = datetime.now()
+    date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
+    video_dir='/home/pi/Videos'
+    raw_name = video_dir+'/vid.h264'
+    video_name = video_dir+'/vid.mp4'
+    # video_name = video_dir+'/vid-'+date_string+'.h264'
+    width = "640"
+    height = "480"
+    vid_time = "5000"
+    fps = "10"
+    bandwidth = "200000"
+    try:
+        subprocess.run(['/usr/bin/raspivid', '-o', raw_name, '-t', vid_time, '-w', width, '-h', height, '-fps', fps, '-b', bandwidth, '-a', '12'])
+        # Convert video into mp4
+        subprocess.run(['MP4Box', '-add', raw_name, video_name, '-new'])
+    except FileNotFoundError as f:
+        logging.info(">>>>> TAKE VIDEO"+video_name)
+    return video_name
+
+def _scp_file(file):
+    username="bitnami"
+    remote="35.176.56.125"
+    dir="/home/bitnami/BeerPiAWS/Receiver/static"
+    logging.info(f"Sending file {file} to {username}@{remote}:{dir}")
+
+    try:
+        subprocess.run(['/usr/bin/scp', '-i', '/home/pi/LightsailDefaultKey-eu-west-2.pem', file, username+"@"+remote+":"+dir])
+    except FileNotFoundError as f:
+        logging.debug('/usr/bin/scp -i /home/pi/LightsailDefaultKey-eu-west-2.pem '+ file+" "+ username+"@"+remote+":"+dir)
+
 def dissconnect():
     logging.info('diconnected')
 

@@ -7,7 +7,7 @@ from flask_socketio import SocketIO
 # Requests will be sent back to the RPi once a socket to this server has been created by the RPi
 ########
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -57,6 +57,10 @@ def update_relay_state(relay_state):
 @socketio.on('set_relay_state')
 def set_relay_state(relay_state):
     socketio.emit("set_relay_state", relay_state)
+
+@socketio.on("camera")
+def camera(cmd):
+    socketio.emit("camera",cmd)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0')

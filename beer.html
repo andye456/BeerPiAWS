@@ -82,6 +82,16 @@
                 $('#relay3').prop("checked", (states_json[3].state == true));
                 $('#relay4').prop("checked", (states_json[4].state == true));
             });
+
+            // Camera Control
+            $('#photo1').click(() => {
+                socket.emit("camera","photo");
+            });
+
+            $('#video1').click( () =>{
+                socket.emit("camera","video");
+            });
+
             /** END MAIN JAVASCRIPT **/
         });
     </script>
@@ -149,14 +159,13 @@
                 </div>
             </div>
         </div>
-        <h3>Take Images</h3>
+        <h3>Camera Control</h3>
         <div class="row">
             <div class="col">
                 <div>
                     <!--                     Input-->
                     <div>
-                        <input type="submit" class="btn btn-primary" id="photo1">
-                        <label for="image1">Still Image</label>
+                        <button class="btn btn-primary" id="photo1">Photo</button>
                     </div>
                     <br>
                     <!--                     Output-->
@@ -168,8 +177,7 @@
                     <br>
                     <!--                    Input-->
                     <div>
-                        <input type="submit" class="btn btn-primary" id="video1">
-                        <label for="video1">Video Clip</label>
+                        <button class="btn btn-primary" id="video1">Video</button>
                     </div>
                     <br>
                     <!--                    Output-->
