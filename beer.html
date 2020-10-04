@@ -55,7 +55,7 @@
                     4: {"state": $('#relay4').prop("checked")}
                 }
 
-                socket.emit('set_relay_state',relay_states);
+                socket.emit('set_relay_state', relay_states);
             }
 
             // Receives the update period value that is stored in the SocketServer
@@ -85,13 +85,30 @@
 
             // Camera Control
             $('#photo1').click(() => {
-                socket.emit("camera","photo");
+                socket.emit("camera", "photo");
             });
 
-            $('#video1').click( () =>{
-                socket.emit("camera","video");
+            $('#video1').click(() => {
+                socket.emit("camera", "video");
             });
 
+            $('#update_photo1').click(() => {
+                socket.emit('get_latest_snap');
+            });
+
+            socket.on('set_latest_snap', (latest_snap) => {
+                console.log("set_latest_snap");
+                $('#snap').attr('src', latest_snap);
+            });
+
+            $('#update_video1').click(() => {
+                console.log("update_video1 button")
+                socket.emit('get_latest_vid');
+            });
+            socket.on('set_latest_vid', (latest_vid) => {
+                console.log("set_latest_vid "+latest_vid);
+                $('#vid').attr('src', latest_vid);
+            });
             /** END MAIN JAVASCRIPT **/
         });
     </script>
@@ -166,25 +183,27 @@
                     <!--                     Input-->
                     <div>
                         <button class="btn btn-primary" id="photo1">Photo</button>
+                        <button class="btn btn-primary" id="update_photo1">Update</button>
                     </div>
                     <br>
                     <!--                     Output-->
                     <div class="row">
                         <div class="col">
-                            <img width="640" height="480" src="/static/snap.jpg">
+                            <img id='snap' width="640" height="480">
                         </div>
                     </div>
                     <br>
                     <!--                    Input-->
                     <div>
                         <button class="btn btn-primary" id="video1">Video</button>
+                        <button class="btn btn-primary" id="update_video1">Update</button>
                     </div>
                     <br>
                     <!--                    Output-->
                     <div class="row">
                         <div class="col">
                             <video preload="true" width="640" height="480" controls>
-                                <source src="/static/vid.mp4" type="video/mp4">
+                                <source id="vid" type="video/mp4">
                             </video>
                         </div>
 

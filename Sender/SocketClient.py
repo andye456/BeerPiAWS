@@ -163,8 +163,8 @@ def _take_photo():
     logging.debug("TAKING PHOTO")
     today = datetime.now()
     date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
-    photo_name = '/home/pi/Pictures/snap.jpg'
-    # photo_name = '/home/pi/Pictures/snap-'+date_string+'.jpg'
+    # photo_name = '/home/pi/Pictures/snap.jpg'
+    photo_name = f'/home/pi/Pictures/snap-{date_string}.jpg'
     width = "640"
     height = "480"
     try:
@@ -180,8 +180,8 @@ def _take_video():
     date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
     video_dir='/home/pi/Videos'
     raw_name = video_dir+'/vid.h264'
-    video_name = video_dir+'/vid.mp4'
-    # video_name = video_dir+'/vid-'+date_string+'.h264'
+    # video_name = video_dir+'/vid.mp4'
+    video_name = f'{video_dir}/vid-{date_string}.h264'
     width = "640"
     height = "480"
     vid_time = "5000"

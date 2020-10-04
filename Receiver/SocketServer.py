@@ -1,6 +1,8 @@
 import logging, json
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+import glob
+import os
 
 ########
 # This is The Socket IO server that the clients (RPi and web page) are going to connect to.
@@ -63,6 +65,23 @@ def set_relay_state(relay_state):
 @socketio.on("camera")
 def camera(cmd):
     socketio.emit("camera",cmd)
+
+@socketio.on('get_latest_snap')
+def get_latest_snap():
+    list_of_files = glob.glob('/home/bitnami/htdocs/static/*.jpg')
+    # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.jpg')
+    latest_file = max(list_of_files, key=os.path.getctime)
+    logging.debug(f'get_latest_snap: {latest_file}')
+    socketio.emit('set_latest_snap',latest_file)
+
+@socketio.on('get_latest_vid')
+def get_latest_vid():
+    list_of_files = glob.glob('/home/bitnami/htdocs/static/*.mp4')
+    # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.mp4')
+    latest_file = max(list_of_files, key=os.path.getctime)
+    logging.debug(f'get_latest_vid: {latest_file}')
+    socketio.emit('set_latest_vid',latest_file)
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0')
