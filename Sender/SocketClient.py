@@ -87,6 +87,14 @@ def camera(cmd):
         video = _take_video()
         _scp_file(video)
 
+# This is called upon connection to the SocketServer and causes the state to be emitted to the UI
+@sio.on("get_relay_state")
+def get_relay_state():
+    sio.emit('update_relay_state', {"1": {"state": relay_1_state['isRelayOn']},
+                                    "2": {"state": relay_2_state['isRelayOn']},
+                                    "3": {"state": relay_3_state['isRelayOn']},
+                                    "4": {"state": relay_4_state['isRelayOn']}})
+
 
 # Reads the temperatures from the probes
 def _read_temp_probe():
@@ -110,6 +118,7 @@ def _set_relay_on(relay: str, state: bool):
     global relay_4_state
     if relay == "RLY1":
         relay_1_state['isRelayOn'] = state
+        # This is only done here as the state of RLY1 is controlled by the client when the heater needs to be on/off
         sio.emit('update_relay_state', {"1": {"state": relay_1_state['isRelayOn']},
                                         "2": {"state": relay_2_state['isRelayOn']},
                                         "3": {"state": relay_3_state['isRelayOn']},
@@ -121,7 +130,6 @@ def _set_relay_on(relay: str, state: bool):
     if relay == "RLY4":
         relay_4_state['isRelayOn'] = state
 
-    logging.debug("_set_relay_on::relay_1_state['isRelayOn']----- " + str(relay_1_state['isRelayOn']))
     logging.debug(f'Turning {relay} {state}')
     # Seems a bit weird that passing false to the output sends it high - so invert it
     state = not state

@@ -1,8 +1,6 @@
 #!/bin/bash
 # Change the target address from localhost to AWS IP address
 sed -i s/localhost/35.176.56.125/ Sender/SocketClient.py
-# Change the webserver address to 0.0.0.0
-sed -i s/localhost/0.0.0.0/ Receiver/SockerServer.py
 # Change the requirements to ref the correct version of RPi.GPIO
 sed -i s/.*GPIO.*/RPi.GPIO==0.7.0/ requirements.txt
 # Change the test temp file to the real one

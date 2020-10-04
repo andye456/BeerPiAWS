@@ -23,7 +23,9 @@ def connect():
     # Called when the web page connects
     socketio.emit("update_req_period", req_update_period) # This is to update the web page
     socketio.emit("set_required_temp", req_temp) # this is to update the web page
-    socketio.emit("update_relay_state", relay_state) # send the json string of the relay vals to the UI
+    logging.debug("Sending Relay state....")
+    # This is a bit back-to-front, it 'calls' a function in the client to then 'emit' the relay states to here
+    socketio.emit("get_relay_state") # this emits to update_relay_state as RLY1set is controlled by the RPi
 
 # This is called from the html and sends the value on to the RPi
 @socketio.on("set_update_period")
