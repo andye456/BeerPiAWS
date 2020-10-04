@@ -70,17 +70,17 @@ def camera(cmd):
 def get_latest_snap():
     list_of_files = glob.glob('/home/bitnami/htdocs/static/*.jpg')
     # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.jpg')
-    latest_file = max(list_of_files, key=os.path.getctime)
+    latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
     logging.debug(f'get_latest_snap: {latest_file}')
-    socketio.emit('set_latest_snap',latest_file)
+    socketio.emit('set_latest_snap','static/'+latest_file)
 
 @socketio.on('get_latest_vid')
 def get_latest_vid():
     list_of_files = glob.glob('/home/bitnami/htdocs/static/*.mp4')
     # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.mp4')
-    latest_file = max(list_of_files, key=os.path.getctime)
-    logging.debug(f'get_latest_vid: {latest_file}')
-    socketio.emit('set_latest_vid',latest_file)
+    latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
+    logging.debug(f'get_latest_vid: static/{latest_file}')
+    socketio.emit('set_latest_vid','static/'+latest_file)
 
 
 if __name__ == '__main__':

@@ -175,13 +175,13 @@ def _take_photo():
 
 def _take_video():
     # raspivid -o Videos/test200K.h264 -t 5000 -w 640 -h 480 -fps 10 -b 200000 -a 12
-    logging.debug("TAKING VIDEO")
     today = datetime.now()
     date_string = today.strftime("%d.%m.%Y-%H.%M.%S")
     video_dir='/home/pi/Videos'
     raw_name = video_dir+'/vid.h264'
     # video_name = video_dir+'/vid.mp4'
-    video_name = f'{video_dir}/vid-{date_string}.h264'
+    video_name = f'{video_dir}/vid-{date_string}.mp4'
+    logging.info("TAKING VIDEO")
     width = "640"
     height = "480"
     vid_time = "5000"
@@ -198,7 +198,7 @@ def _take_video():
 def _scp_file(file):
     username="bitnami"
     remote="35.176.56.125"
-    dir="/home/bitnami/BeerPiAWS/Receiver/static"
+    dir="/opt/bitnami/apache2/htdocs/static"
     logging.info(f"Sending file {file} to {username}@{remote}:{dir}")
 
     try:
