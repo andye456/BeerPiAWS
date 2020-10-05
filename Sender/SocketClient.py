@@ -3,7 +3,7 @@ import socketio
 from datetime import datetime
 import subprocess
 import requests, json
-from time import gmtime, strftime
+from time import gmtime, strftime, time
 import time
 import RPi.GPIO as GPIO
 from threading import Thread
@@ -70,12 +70,36 @@ def set_required_temp(required_temp):
     global desired_temp
     desired_temp = int(required_temp)
 
+# This turns the relay on for a certain amount of time
 @sio.on("set_relay_state")
 def set_relay_state(relay_states):
     logging.debug(relay_states)
-    _set_relay_on("RLY2",relay_states['2']['state'])
-    _set_relay_on("RLY3",relay_states['3']['state'])
-    _set_relay_on("RLY4",relay_states['4']['state'])
+    # If there is a value in the timeout field then turn the relay on in a thread that times out
+    if relay_states['2']['timeout'] != '0' and relay_states['2']['timeout'] != '':
+        if relay_states['2']['state']:
+            Thread(target=set_relay_timeout, args=(2,relay_states['2']['timeout'],)).start()
+    else:
+        _set_relay_on("RLY2", relay_states['2']['state'])
+
+    if relay_states['3']['timeout'] != '0' and relay_states['3']['timeout'] != '':
+        if relay_states['3']['state']:
+            Thread(target=set_relay_timeout, args=(3,relay_states['3']['timeout'],)).start()
+    else:
+        _set_relay_on("RLY3",relay_states['3']['state'])
+
+    if relay_states['4']['timeout'] != '0' and relay_states['4']['timeout'] != '':
+        if relay_states['4']['state']:
+            Thread(target=set_relay_timeout, args=(4,relay_states['4']['timeout'],)).start()
+    else:
+        _set_relay_on("RLY4",relay_states['4']['state'])
+
+def set_relay_timeout(rly, timeout):
+    logging.debug(f'set_relay_{rly}_timeout {timeout}')
+    _set_relay_on(f"RLY{rly}", True)
+    time.sleep(int(timeout))
+    _set_relay_on(f"RLY{rly}", False)
+    get_relay_state()
+
 
 @sio.on("camera")
 def camera(cmd):
@@ -150,7 +174,6 @@ def control_temp_relay():
         time.sleep(1) # This is always 1 second as we want to keep the water temp accurate
 
 def send_temp_to_server():
-    time.sleep(2)
     while True:
         temp1, temp2 = _read_temp_probe()
         temp1 = float(temp1)

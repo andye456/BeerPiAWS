@@ -47,12 +47,13 @@
                 set_relays();
             });
 
+            /** Sets the states of the relays and the timeout for them being on **/
             function set_relays() {
                 let relay_states = {
-                    1: {"state": $('#relay1').prop("checked")},
-                    2: {"state": $('#relay2').prop("checked")},
-                    3: {"state": $('#relay3').prop("checked")},
-                    4: {"state": $('#relay4').prop("checked")}
+                    1: {"state": $('#relay1').prop("checked"), "timeout":""},
+                    2: {"state": $('#relay2').prop("checked"), "timeout":$('#r2_timeout').val()},
+                    3: {"state": $('#relay3').prop("checked"), "timeout":$('#r3_timeout').val()},
+                    4: {"state": $('#relay4').prop("checked"), "timeout":$('#r4_timeout').val()}
                 }
 
                 socket.emit('set_relay_state', relay_states);
@@ -159,20 +160,23 @@
                 <!--                Inputs/Outputs-->
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="relay1">
-                    <label class="custom-control-label" for="relay1">Relay 1 (Heater)</label>
+                    <label class="custom-control-label" for="relay1">Relay 1 (Heater) - controlled by RPi</label>
                 </div>
                 <!--                Inputs/Outputs-->
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="relay2">
                     <label class="custom-control-label" for="relay2">Relay 2</label>
+                    <input type="text" id="r2_timeout" size="5">seconds (timeout: blank or 0 = always on)
                 </div>
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="relay3">
                     <label class="custom-control-label" for="relay3">Relay 3</label>
+                    <input type="text" id="r3_timeout" size="5">seconds
                 </div>
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="relay4">
                     <label class="custom-control-label" for="relay4">Relay 4</label>
+                    <input type="text" id="r4_timeout" size="5">seconds
                 </div>
             </div>
         </div>
