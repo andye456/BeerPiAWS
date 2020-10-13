@@ -53,7 +53,7 @@ def set_temp_from_probes(temps):
     today = datetime.now()
     date_string = today.strftime("%d-%m-%Y_%H-%M-%S")
     file_date = today.strftime("%d-%m-%Y")
-    csv_file = f"temp_data_{file_date}.csv"
+    csv_file = f"temp_files/temp_data_{file_date}.csv"
     with open(csv_file,'a') as f:
         if os.stat(csv_file).st_size == 0:
             f.writelines('time,temp1,temp2,relay1\n')

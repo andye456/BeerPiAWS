@@ -22,7 +22,7 @@ show_graph = function () {
 
     today = getDateTime()
 //Read the data
-    d3.csv("Receiver/temp_data_" + today + ".csv",
+    d3.csv("ls -l" + today + ".csv",
         function (d) {
             // format date fields
             return {time: d3.timeParse("%d-%m-%Y_%H-%M-%S")(d.time), temp1: d.temp1, temp2: d.temp2, relay1: d.relay1}

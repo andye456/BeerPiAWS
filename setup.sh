@@ -8,6 +8,8 @@ sed -i 's/w1_slave1/\/sys\/bus\/w1\/devices\/28-01193c3b3149\/w1_slave/' Sender/
 sed -i 's/w1_slave2/\/sys\/bus\/w1\/devices\/28-01193c5f3e7f\/w1_slave/' Sender/SocketClient.py
 # change the localhost int he html to pevent CORS error
 sed -i s/localhost/35.176.56.125/ beer.html
+# Change the location of the csv file relative to htdocs by creating a symlink
+ln -s ~/BeerPiAWS/js ~/htdocs/js
 # Copy the html to htdocs
 cp beer.html ~/htdocs
 # Check the version of python avilable
