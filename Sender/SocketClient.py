@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel('DEBUG')
@@ -131,6 +131,7 @@ def _read_temp_probe():
             t2 = int(lines[1].split("=")[1]) / 1000
         return t1, t2
     except IndexError as ie:
+        logging.warning('IndexError........')
         logging.warning(ie)
 
 # Set the relay to on or off

@@ -7,8 +7,11 @@
     <title>Beer Control</title>
     <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
           integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
             integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
             crossorigin="anonymous"></script>
@@ -36,7 +39,6 @@
                 socket.emit("set_required_temp", $('#required_temp').val());
             });
 
-
             $('#relay2').change(function () {
                 set_relays();
             });
@@ -47,13 +49,14 @@
                 set_relays();
             });
 
+
             /** Sets the states of the relays and the timeout for them being on **/
             function set_relays() {
                 let relay_states = {
-                    1: {"state": $('#relay1').prop("checked"), "timeout":""},
-                    2: {"state": $('#relay2').prop("checked"), "timeout":$('#r2_timeout').val()},
-                    3: {"state": $('#relay3').prop("checked"), "timeout":$('#r3_timeout').val()},
-                    4: {"state": $('#relay4').prop("checked"), "timeout":$('#r4_timeout').val()}
+                    1: {"state": $('#relay1').prop("checked"), "timeout": ""},
+                    2: {"state": $('#relay2').prop("checked"), "timeout": $('#r2_timeout').val()},
+                    3: {"state": $('#relay3').prop("checked"), "timeout": $('#r3_timeout').val()},
+                    4: {"state": $('#relay4').prop("checked"), "timeout": $('#r4_timeout').val()}
                 }
 
                 socket.emit('set_relay_state', relay_states);
@@ -97,6 +100,11 @@
                 socket.emit('get_latest_snap');
             });
 
+            $('#update_graph').click(()=> {
+                // $('#svg').remove();
+                update_graph();
+            });
+
             socket.on('set_latest_snap', (latest_snap) => {
                 console.log("set_latest_snap");
                 $('#snap').attr('src', latest_snap);
@@ -107,9 +115,11 @@
                 socket.emit('get_latest_vid');
             });
             socket.on('set_latest_vid', (latest_vid) => {
-                console.log("set_latest_vid "+latest_vid);
+                console.log("set_latest_vid " + latest_vid);
                 $('#vid').attr('src', latest_vid);
             });
+
+
             /** END MAIN JAVASCRIPT **/
         });
     </script>
@@ -180,6 +190,18 @@
                 </div>
             </div>
         </div>
+        <br>
+        <div class="row">
+            <div class="col">
+                <button class="btn btn-primary" id="update_graph">Refresh</button>
+            </div>
+        </div>
+        <div class="row" style="width: 1000px; overflow: auto">
+
+            <div class="col" id="graph1" >
+            </div>
+        </div>
+        <br>
         <h3>Camera Control</h3>
         <div class="row">
             <div class="col">
@@ -218,5 +240,7 @@
         </div>
     </div>
 </div>
+    <script src="js/chart.js"></script>
+
 </body>
 </html>

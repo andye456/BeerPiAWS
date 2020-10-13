@@ -3,20 +3,20 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO
 import glob
 import os
-
+from datetime import datetime
 ########
 # This is The Socket IO server that the clients (RPi and web page) are going to connect to.
 # Requests will be sent back to the RPi once a socket to this server has been created by the RPi
 ########
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeout=300)
 
 req_temp = 25
-req_update_period = 10
+req_update_period = 1
 relay_state= {"1": {"state": False}, "2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
 
 @socketio.on('connect')
@@ -49,13 +49,28 @@ def set_required_temp(required_temp):
 @socketio.on("set_temp_from_probes")
 def set_temp_from_probes(temps):
     logging.debug(f"temps : {temps}")
+    # write the temperature to a csv file.
+    today = datetime.now()
+    date_string = today.strftime("%d-%m-%Y_%H-%M-%S")
+    file_date = today.strftime("%d-%m-%Y")
+    csv_file = f"temp_data_{file_date}.csv"
+    with open(csv_file,'a') as f:
+        if os.stat(csv_file).st_size == 0:
+            f.writelines('time,temp1,temp2,relay1\n')
+        if relay_state['1']['state']:
+            f.writelines(f"{date_string},{temps['t1']},{temps['t2']},1\n")
+        elif not relay_state['1']['state']:
+            f.writelines(f"{date_string},{temps['t1']},{temps['t2']},0\n")
+
     socketio.emit('update_temps',temps)
 
 # This is called by the RPi and changes the state of the relay that is controlled by the RPi (heater)
 @socketio.on('update_relay_state')
-def update_relay_state(relay_state):
-    logging.debug(f"relay_state: {relay_state}")
-    socketio.emit('update_relay_state',relay_state)
+def update_relay_state(r_state):
+    logging.debug(f"relay_state: {r_state}")
+    global relay_state
+    relay_state = r_state
+    socketio.emit('update_relay_state',r_state)
 
 # This is called by the UI and set the state of the other relays
 @socketio.on('set_relay_state')

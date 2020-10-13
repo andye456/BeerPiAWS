@@ -1,24 +1,31 @@
 import random, time
+import math
 
 up = True
-min = 250
-max = 300
-step=5
+t1min = 220
+t1max = 300
+t2min = 200
+t2max = 310
+step = 5
+time_period = 60
 while True:
     # temp = random.randint(160, 220)
-    if up:
-        temp_range = range(min,max,step)
-        up = False
-    else:
-        temp_range = range(max,min,-step)
-        up = True
-    for temp in temp_range:
+    temp_range1 = range(t1min, t1max, step)
+    temp_range2 = range(t2max, t2min, -step*2)
+
+
+    for (temp1, temp2) in zip(temp_range1, temp_range2):
         with open("w1_slave1", "w") as f:
+            t1 =  (math.sin(math.radians(temp1 * 10))  + 5)/2
+            t1 = "%.2f" % t1
+            t1=int(float(t1)*100)
             f.writelines(["50 01 80 80 1f ff 80 80 d2 : crc=d2 YES\n",
-                         f"50 01 80 80 1f ff 80 80 d2 t={temp}00"])
+                          f"50 01 80 80 1f ff 80 80 d2 t={t1}00"])
+            print(f'{t1} ',end="")
         with open("w1_slave2", "w") as f:
             f.writelines(["50 01 80 80 1f ff 80 80 d2 : crc=d2 YES\n",
-                         f"50 01 80 80 1f ff 80 80 d2 t={temp}00"])
-        print(temp)
+                          f"50 01 80 80 1f ff 80 80 d2 t={temp2}00"])
+            print(f'{temp2}')
 
         time.sleep(5)
+
