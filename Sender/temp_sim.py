@@ -27,5 +27,5 @@ while True:
                           f"50 01 80 80 1f ff 80 80 d2 t={temp2}00"])
             print(f'{temp2}')
 
-        time.sleep(5)
+        time.sleep(1)
 

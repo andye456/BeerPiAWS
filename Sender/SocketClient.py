@@ -56,6 +56,7 @@ def connect():
     logging.info('Connection estabished')
 
 
+
 # This is called by the SocketServer to set the update period
 @sio.on("set_update_period")
 def set_update_period(time_seconds):
@@ -119,6 +120,11 @@ def get_relay_state():
                                     "3": {"state": relay_3_state['isRelayOn']},
                                     "4": {"state": relay_4_state['isRelayOn']}})
 
+# This is set by an emit fro the server on startup top make sure the temperature aligns with what is in the GUI
+@sio.on("update_req_period")
+def set_update_period(value):
+    global update_period
+    update_period = value
 
 # Reads the temperatures from the probes
 def _read_temp_probe():
@@ -180,8 +186,13 @@ def send_temp_to_server():
         temp1 = float(temp1)
         temp2 = float(temp2)
         sio.emit('set_temp_from_probes',{"t1":temp1,"t2":temp2})
-        for i in range(update_period):
-            time.sleep(1)
+        logging.debug(f'Sleeping for {update_period} seconds')
+        sleep_time = update_period
+        for i in range(sleep_time):
+            if sleep_time == update_period:
+                time.sleep(1)
+            else:
+                break
 
 def _take_photo():
     logging.debug("TAKING PHOTO")
