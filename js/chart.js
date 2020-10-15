@@ -22,14 +22,14 @@ show_graph = function () {
 
     today = getDateTime()
 //Read the data
-    d3.csv("ls -l" + today + ".csv",
+    d3.csv("Receiver/temp_files/temp_data_" + today + ".csv",
         function (d) {
             // format date fields
             return {time: d3.timeParse("%d-%m-%Y_%H-%M-%S")(d.time), temp1: d.temp1, temp2: d.temp2, relay1: d.relay1}
         },
 
         function (data) {
-            const xwidth = data.length * 4 + margin.left + margin.right
+            const xwidth = data.length * 4 + margin.left + margin.right;
 
             d3.select('#svg').attr("width", xwidth + 200);
             console.log(data);
@@ -83,7 +83,7 @@ show_graph = function () {
                 })
                 .y(function (d) {
                     return y(+d.value)
-                })
+                });
             svg.selectAll("myLines")
                 .data(dataReady)
                 .enter()
@@ -105,7 +105,7 @@ show_graph = function () {
                 .style("border", "solid")
                 .style("border-width", "1px")
                 .style("border-radius", "5px")
-                .style("padding", "10px")
+                .style("padding", "10px");
 
             var mouseover = function (d) {
                 tooltip
@@ -114,7 +114,7 @@ show_graph = function () {
 
             var mousemove = function (d) {
                 tooltip
-                    .html("Temperature: " + d.value)
+                    .html("Temperature: " + d.value+"<br>Time: "+('0'+d.time.getHours()).slice(-2)+":"+('0'+d.time.getMinutes()).slice(-2)+":"+('0'+d.time.getSeconds()).slice(-2))
                     .style("left", (d3.mouse(this)[0] + 90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
                     .style("top", (d3.mouse(this)[1]) + "px")
             }
