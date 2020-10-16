@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(filename='client.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel('DEBUG')

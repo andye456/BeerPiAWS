@@ -55,6 +55,7 @@ def set_temp_from_probes(temps):
     file_date = today.strftime("%d-%m-%Y")
     csv_file = f"temp_files/temp_data_{file_date}.csv"
     with open(csv_file,'a') as f:
+        logging.debug(f'Logging to file {csv_file}')
         if os.stat(csv_file).st_size == 0:
             f.writelines('time,temp1,temp2,relay1\n')
         if relay_state['1']['state']:
