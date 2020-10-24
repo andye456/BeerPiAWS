@@ -40,10 +40,22 @@ This is a standard HTML page stored in htdocs on AWS
 
 It uses socket.io in javascript to comunicate with the SocketIO server.
 
+The graph is done using D3.
+
 ### Connection
 * The RPi makes a connection to the http address of the socket.io Server
 * The Server then returns data to the socket.io receiver running on the RPi
 
 It's as simple as that.
+
+An example of websocket comms is:
+
+* The webpage is refreshed and code in `$(document).ready(function () {` is called. 
+* This calls socketio.emit("get_temp_from_pi")
+* The listener, @socketio.on("get_temp_from_pi"), on the server running on AWS, runs its function.
+* This function calls socketio.emit("get_temp")
+* On the Rpi this is picked up by sio.on("get_temp")
+* This calls its function to get the temp from the probes then "emit" back to the server 
+then to the UI.
 
 ![](beer_pi.png)
