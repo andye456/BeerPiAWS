@@ -19,6 +19,7 @@
         $(document).ready(function () {
             /** MAIN JAVASCRIPT **/
 
+
                 // const host = "http://35.176.56.125:5000";
             const host = "http://localhost:5000";
             const socket = io(host);
@@ -33,6 +34,9 @@
             $('#update_period_button').click(() => {
                 socket.emit("set_update_period", $('#update_period').val());
             });
+
+            // Ask the server for the temp when page is refreshed/loaded
+            socket.emit("get_temp_from_pi");
 
             // Sends the required temperature to the Rpi via the SocketServer
             $('#required_temp_button').click(() => {
@@ -100,11 +104,21 @@
                 socket.emit('get_latest_snap');
             });
 
-            $('#update_graph').click(()=> {
-                // $('#svg').remove();
-                update_graph();
+            var day_count = 0;
+            $('#update_graph').click(() => {
+                day_count = 0;
+                update_graph(0);
             });
 
+            $('#back_day').click(() => {
+                day_count--;
+                update_graph(day_count);
+            });
+
+            $('#forward_day').click(() => {
+                day_count++;
+                update_graph(day_count);
+            });
             socket.on('set_latest_snap', (latest_snap) => {
                 console.log("set_latest_snap");
                 $('#snap').attr('src', latest_snap);
@@ -193,12 +207,21 @@
         <br>
         <div class="row">
             <div class="col">
-                <button class="btn btn-primary" id="update_graph">Refresh</button>
+                <button class="btn btn-primary" id="update_graph">Refresh Graph</button>
+            </div>
+            <div class="col">
+                <H3 id="today_date"></H3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <button style="margin:5px" class="btn btn-primary" id="back_day"><</button>
+                <button class="btn btn-primary" id="forward_day">></button>
             </div>
         </div>
         <div class="row" style="width: 1000px; overflow: auto">
 
-            <div class="col" id="graph1" >
+            <div class="col" id="graph1">
             </div>
         </div>
         <br>
@@ -240,7 +263,7 @@
         </div>
     </div>
 </div>
-    <script src="js/chart.js"></script>
+<script src="js/chart.js"></script>
 
 </body>
 </html>

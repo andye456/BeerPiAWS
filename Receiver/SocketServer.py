@@ -9,7 +9,7 @@ from datetime import datetime
 # Requests will be sent back to the RPi once a socket to this server has been created by the RPi
 ########
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -28,6 +28,11 @@ def connect():
     logging.debug("Sending Relay state....")
     # This is a bit back-to-front, it 'calls' a function in the client to then 'emit' the relay states to here
     socketio.emit("get_relay_state") # this emits to update_relay_state as RLY1set is controlled by the RPi
+
+# Gets the temperature from the PRi probes
+@socketio.on("get_temp_from_pi")
+def get_temp_from_pi():
+        socketio.emit("get_temp")
 
 # This is called from the html and sends the value on to the RPi
 @socketio.on("set_update_period")

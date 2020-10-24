@@ -1,14 +1,14 @@
 // set the dimensions and margins of the graph
 
 
-update_graph = function () {
+update_graph = function (day_adjust) {
     d3.select('#svg').remove();
-    show_graph();
+    show_graph(day_adjust);
 }
-show_graph = function () {
+show_graph = function (day) {
     var margin = {top: 10, right: 100, bottom: 120, left: 30},
         width = 1000 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+        height = 300 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
     var svg = d3.select("#graph1")
@@ -20,8 +20,9 @@ show_graph = function () {
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
-    today = getDateTime()
+    today = getDateTime(day);
 //Read the data
+    d3.select('#today_date').text(today);
     d3.csv("Receiver/temp_files/temp_data_" + today + ".csv",
         function (d) {
             // format date fields
@@ -63,7 +64,7 @@ show_graph = function () {
             xAxis = d3.axisBottom(x)
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
-                .call(xAxis.ticks(d3.timeMinute))
+                .call(xAxis.ticks(d3.timeHour))
                 .selectAll("text")
                 .attr("transform", "rotate(90)")
                 .style("text-anchor", "start")
@@ -182,9 +183,10 @@ show_graph = function () {
         })
 }
 
-function getDateTime() {
+function getDateTime(d) {
 
     var date = new Date();
+    date.setDate(date.getDate() + d)
 
     var hour = date.getHours();
     hour = (hour < 10 ? "0" : "") + hour;

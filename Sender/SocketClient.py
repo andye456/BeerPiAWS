@@ -9,7 +9,8 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(filename='client.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(filename='client.log', level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s')
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel('DEBUG')
@@ -55,7 +56,10 @@ relay_4_state = {'isRelayOn': False}
 def connect():
     logging.info('Connection estabished')
 
-
+# This is called by the Server when the server receives get_temp_from_pi from the web page
+@sio.on("get_temp")
+def get_temp():
+    send_temp_to_server()
 
 # This is called by the SocketServer to set the update period
 @sio.on("set_update_period")
@@ -171,9 +175,9 @@ def _set_relay_on(relay: str, state: bool):
 def control_temp_relay():
     while True:
         current_temp = _read_temp_probe()[0] # This is only for relay 1
-        # logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
-        # logging.debug("control_temp_relay::dtemp  = "+str(desired_temp))
-        # logging.debug(f"relay_1_state['isRelayOn'] {relay_1_state['isRelayOn']}")
+        logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
+        logging.debug("control_temp_relay::dtemp  = "+str(desired_temp))
+        logging.debug(f"relay_1_state['isRelayOn'] {relay_1_state['isRelayOn']}")
         if current_temp <= float(desired_temp) - margin and not relay_1_state['isRelayOn']:
             _set_relay_on("RLY1", True)
         elif current_temp >= float(desired_temp) + margin and relay_1_state['isRelayOn']:
