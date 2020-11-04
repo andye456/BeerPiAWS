@@ -9,7 +9,7 @@ from datetime import datetime
 # Requests will be sent back to the RPi once a socket to this server has been created by the RPi
 ########
 
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -67,7 +67,7 @@ def set_temp_from_probes(temps):
             f.writelines(f"{date_string},{temps['t1']},{temps['t2']},1\n")
         elif not relay_state['1']['state']:
             f.writelines(f"{date_string},{temps['t1']},{temps['t2']},0\n")
-
+    # Updates the temps in the UI
     socketio.emit('update_temps',temps)
 
 # This is called by the RPi and changes the state of the relay that is controlled by the RPi (heater)

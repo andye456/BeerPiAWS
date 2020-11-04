@@ -5,7 +5,7 @@ up = True
 t1min = 220
 t1max = 300
 t2min = 200
-t2max = 310
+t2max = 1000
 step = 5
 time_period = 60
 while True:

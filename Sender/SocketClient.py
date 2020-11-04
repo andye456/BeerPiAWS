@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(filename='client.log', level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(filename='client.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # logger = logging.getLogger(__name__)
@@ -24,9 +24,9 @@ print("---------------")
 
 # Temperature limits
 desired_temp = ""
-margin = 0.1
+upper_bound = 0.0
+lower_bound = 0.1
 
-# host="http://35.176.56.125:5000"
 host = "http://localhost:5000"
 update_period = 10
 temp_file1 = "w1_slave1"
@@ -57,9 +57,14 @@ def connect():
     logging.info('Connection estabished')
 
 # This is called by the Server when the server receives get_temp_from_pi from the web page
+# The function is also called by the main loop
 @sio.on("get_temp")
 def get_temp():
-    send_temp_to_server()
+    logging.debug("Getting temp")
+    temp1, temp2 = _read_temp_probe()
+    temp1 = float(temp1)
+    temp2 = float(temp2)
+    sio.emit('set_temp_from_probes', {"t1": temp1, "t2": temp2})
 
 # This is called by the SocketServer to set the update period
 @sio.on("set_update_period")
@@ -174,25 +179,27 @@ def _set_relay_on(relay: str, state: bool):
 # Turns R1 on and off depending on the desired temp - reads temp every second
 def control_temp_relay():
     while True:
-        current_temp = _read_temp_probe()[0] # This is only for relay 1
+        try:
+            current_temp = _read_temp_probe()[0] # This is only for relay 1
+        except TypeError:
+            pass
         logging.debug(f"control_temp_relay::current_temp = {str(current_temp)}")
         logging.debug("control_temp_relay::dtemp  = "+str(desired_temp))
         logging.debug(f"relay_1_state['isRelayOn'] {relay_1_state['isRelayOn']}")
-        if current_temp <= float(desired_temp) - margin and not relay_1_state['isRelayOn']:
+        if current_temp <= float(desired_temp) - lower_bound and not relay_1_state['isRelayOn']:
             _set_relay_on("RLY1", True)
-        elif current_temp >= float(desired_temp) + margin and relay_1_state['isRelayOn']:
+        elif current_temp >= float(desired_temp) + upper_bound and relay_1_state['isRelayOn']:
             _set_relay_on("RLY1", False)
         time.sleep(1) # This is always 1 second as we want to keep the water temp accurate
 
 def send_temp_to_server():
     while True:
-        temp1, temp2 = _read_temp_probe()
-        temp1 = float(temp1)
-        temp2 = float(temp2)
-        sio.emit('set_temp_from_probes',{"t1":temp1,"t2":temp2})
+        get_temp()
         logging.debug(f'Sleeping for {update_period} seconds')
         sleep_time = update_period
         for i in range(sleep_time):
+            # Check if the sleep time is still the update period, if update_period has been changed in the UI then this
+            # loop will break and the new update period will be used.
             if sleep_time == update_period:
                 time.sleep(1)
             else:
@@ -207,7 +214,7 @@ def _take_photo():
     width = "640"
     height = "480"
     try:
-        subprocess.run(['/usr/bin/raspistill', '-o', photo_name, '-w', width, '-h', height])
+        subprocess.run(['/usr/bin/raspistill', '-o', photo_name, '-w', width, '-h', height, '-t', '1000'])
     except FileNotFoundError as f:
         logging.debug(">>>>> TAKE PHOTO"+photo_name)
     return photo_name

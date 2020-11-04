@@ -59,3 +59,49 @@ An example of websocket comms is:
 then to the UI.
 
 ![](beer_pi.png)
+
+### Installation Instructions
+Following local dev, git add/commit/push to https://github.com/andye456/BeerPiAWS.git (this repo)
+
+Then, using MobaXTerm, or Putty or whatever, connect to AWS Bitnami. If using Moba then goto the 
+Advanced SSH Settings and use the ssh key (LightsailDefaultPrivateKey-eu-west-2.ppk) which can be downloaded from 
+the AWS website.
+
+To log on to the RPi this is a local connection and is 192.168. whatever.
+
+cd to the BeerPiAWS directory and run `git stash`, `git pull` on both.
+
+run `chmod a+x setup.sh; setup.sh` on both
+
+ON the Pi cd to Sender and run `python Client.py` (Actually reset the Pi and this will start automatically))
+
+On AWS cd to Receiver and run `nohup python Server.py &`
+
+Browse to <my AWS ip>/beer.html
+
+On the Pi include the following in .bashrc so that it won't start if no local network is available.
+
+```shell script
+echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
+echo "About to start the Beer Pi sender script....."
+echo "Ctrl+c in 5 seconds to abort"
+echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
+sleep 5
+
+# Sets the relays off
+python set_gpio.py
+
+cd ~/BeerPiAWS
+. venv/bin/activate
+cd Sender
+# Waits until the network is up before starting the application.
+while true; do
+        ping -c 1 -w 2 192.168.1.1
+        if [[ $? -eq 0 ]]; then
+                python SocketClient.py
+                break
+        fi
+        echo "Retrying network...."
+        sleep 1
+done
+```
