@@ -71,7 +71,7 @@ def get_temp():
 def set_update_period(time_seconds):
     # Sets the the read frequency of the temperature probe
     logging.debug(f"Setting the update period to: {time_seconds}")
-    global update_period
+    global update_period, desired_temp
     update_period = int(time_seconds)
 
 @sio.on("set_required_temp")

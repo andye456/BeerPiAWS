@@ -15,16 +15,33 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeout=300)
 
-req_temp = 25
-req_update_period = 1
+# Write the temp and time period to a file.
+def _write_save_data(temp, period):
+    with open("save_data.txt", "w") as f:
+        f.write(f'{temp} {period}')
+
+# Opens the file containing the last used values
+def _read_save_data():
+    try:
+        with open("save_data.txt", "r") as f:
+            for line in f:
+                d = line.split()
+                return d[0], d[1]
+    except FileNotFoundError as f:
+        # if file does not exist then use vals 20 deg and 300 seconds (5 mins)
+        return 20,300
+
+req_temp,req_update_period = _read_save_data()
 relay_state= {"1": {"state": False}, "2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
+
+
 
 @socketio.on('connect')
 def connect():
     logging.debug("Connected...")
     # Called when the web page connects
-    socketio.emit("update_req_period", req_update_period) # This is to update the web page
-    socketio.emit("set_required_temp", req_temp) # this is to update the web page
+    socketio.emit("update_req_period", req_update_period) # This is to update the web page and the val stored in Rpi
+    socketio.emit("set_required_temp", req_temp) # this is to update the web page and val stored in RPi
     logging.debug("Sending Relay state....")
     # This is a bit back-to-front, it 'calls' a function in the client to then 'emit' the relay states to here
     socketio.emit("get_relay_state") # this emits to update_relay_state as RLY1set is controlled by the RPi
@@ -38,17 +55,18 @@ def get_temp_from_pi():
 @socketio.on("set_update_period")
 def set_update_period(time_seconds):
     logging.debug("set_update_period " + str(time_seconds))
-    global req_update_period
+    global req_update_period, req_temp
     req_update_period = int(time_seconds)
     socketio.emit("set_update_period", time_seconds)
-
+    _write_save_data(req_temp, req_update_period)
 # This is called from the html and sends the value on to the RPi
 @socketio.on("set_required_temp")
 def set_required_temp(required_temp):
     logging.debug("set_required_temp " + str(required_temp))
-    global req_temp
+    global req_temp, req_update_period
     req_temp = int(required_temp)
     socketio.emit("set_required_temp", required_temp)
+    _write_save_data(req_temp, req_update_period)
 
 # called by the client to set the temps to display in the UI
 @socketio.on("set_temp_from_probes")
