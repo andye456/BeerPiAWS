@@ -5,6 +5,7 @@ update_graph = function (day_adjust) {
     d3.select('#svg').remove();
     show_graph(day_adjust);
 }
+
 show_graph = function (day) {
     var margin = {top: 10, right: 100, bottom: 120, left: 30},
         width = 1000 - margin.left - margin.right,

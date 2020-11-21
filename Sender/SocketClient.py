@@ -197,7 +197,7 @@ def send_temp_to_server():
         get_temp()
         logging.debug(f'Sleeping for {update_period} seconds')
         sleep_time = update_period
-        for i in range(sleep_time):
+        for i in range(int(sleep_time)):
             # Check if the sleep time is still the update period, if update_period has been changed in the UI then this
             # loop will break and the new update period will be used.
             if sleep_time == update_period:

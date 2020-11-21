@@ -96,13 +96,10 @@
                 socket.emit("camera", "photo");
             });
 
-            $('#video1').click(() => {
-                socket.emit("camera", "video");
-            });
+            // $('#video1').click(() => {
+            //     socket.emit("camera", "video");
+            // });
 
-            $('#update_photo1').click(() => {
-                socket.emit('get_latest_snap');
-            });
 
             var day_count = 0;
             $('#update_graph').click(() => {
@@ -119,19 +116,35 @@
                 day_count++;
                 update_graph(day_count);
             });
+
+            // The parameter is the list position, this is either -1 0 or +1, 0 is current
+            // the other values are used to go back and  forwards in the list of images
+            $('#update_photo1').click(() => {
+                socket.emit('get_latest_snap', 0);
+            });
+
+            $('#back_day_photo').click(() => {
+                socket.emit('get_latest_snap', -1);
+            });
+
+            $('#forward_day_photo').click(() => {
+                socket.emit('get_latest_snap', +1);
+            });
+
             socket.on('set_latest_snap', (latest_snap) => {
                 console.log("set_latest_snap");
+                $('#photo_title').text(latest_snap)
                 $('#snap').attr('src', latest_snap);
             });
 
-            $('#update_video1').click(() => {
-                console.log("update_video1 button")
-                socket.emit('get_latest_vid');
-            });
-            socket.on('set_latest_vid', (latest_vid) => {
-                console.log("set_latest_vid " + latest_vid);
-                $('#vid').attr('src', latest_vid);
-            });
+            // $('#update_video1').click(() => {
+            //     console.log("update_video1 button")
+            //     socket.emit('get_latest_vid');
+            // });
+            // socket.on('set_latest_vid', (latest_vid) => {
+            //     console.log("set_latest_vid " + latest_vid);
+            //     $('#vid').attr('src', latest_vid);
+            // });
 
 
             /** END MAIN JAVASCRIPT **/
@@ -234,7 +247,14 @@
                         <button class="btn btn-primary" id="photo1">Photo</button>
                         <button class="btn btn-primary" id="update_photo1">Update</button>
                     </div>
+                    <div class="row">
+                        <div class="col">
+                            <button style="margin:5px" class="btn btn-primary" id="back_day_photo"><</button>
+                            <button class="btn btn-primary" id="forward_day_photo">></button>
+                        </div>
+                    </div>
                     <br>
+                    <div id="photo_title"></div>
                     <!--                     Output-->
                     <div class="row">
                         <div class="col">
@@ -243,20 +263,20 @@
                     </div>
                     <br>
                     <!--                    Input-->
-                    <div>
-                        <button class="btn btn-primary" id="video1">Video</button>
-                        <button class="btn btn-primary" id="update_video1">Update</button>
-                    </div>
-                    <br>
-                    <!--                    Output-->
-                    <div class="row">
-                        <div class="col">
-                            <video preload="true" width="640" height="480" controls>
-                                <source id="vid" type="video/mp4">
-                            </video>
-                        </div>
+                    <!--                    <div>-->
+                    <!--                        <button class="btn btn-primary" id="video1">Video</button>-->
+                    <!--                        <button class="btn btn-primary" id="update_video1">Update</button>-->
+                    <!--                    </div>-->
+                    <!--                    <br>-->
+                    <!--                    &lt;!&ndash;                    Output&ndash;&gt;-->
+                    <!--                    <div class="row">-->
+                    <!--                        <div class="col">-->
+                    <!--                            <video preload="true" width="640" height="480" controls>-->
+                    <!--                                <source id="vid" type="video/mp4">-->
+                    <!--                            </video>-->
+                    <!--                        </div>-->
 
-                    </div>
+                    <!--                    </div>-->
 
                 </div>
             </div>

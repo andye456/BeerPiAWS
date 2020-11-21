@@ -15,6 +15,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeout=300)
 
+# List position of the photo list
+current_pos = 0
+
 # Write the temp and time period to a file.
 def _write_save_data(temp, period):
     with open("save_data.txt", "w") as f:
@@ -105,21 +108,28 @@ def set_relay_state(relay_state):
 def camera(cmd):
     socketio.emit("camera",cmd)
 
+# Get the snap that is current (0) or before it etc. -1, 0, +1
+# current_pos is the position relative to the end of the list, 0 is end -1 is one back etc.
 @socketio.on('get_latest_snap')
-def get_latest_snap():
+def get_latest_snap(pos):
+    global current_pos
+    current_pos = current_pos+pos
+    if pos == 0:
+        current_pos = 0
     list_of_files = glob.glob('/home/bitnami/htdocs/static/*.jpg')
-    # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.jpg')
-    latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
-    logging.debug(f'get_latest_snap: {latest_file}')
+    # list_of_files = glob.glob('C:/Users/andye/PycharmProjects/BeerPiAWS/static/*.jpg')
+    list_of_files.sort(key=os.path.getctime)
+    latest_file = os.path.basename(list_of_files[current_pos - 1])
+    logging.debug(f'get_latest_snap: {pos} {latest_file}')
     socketio.emit('set_latest_snap','static/'+latest_file)
 
-@socketio.on('get_latest_vid')
-def get_latest_vid():
-    list_of_files = glob.glob('/home/bitnami/htdocs/static/*.mp4')
-    # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.mp4')
-    latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
-    logging.debug(f'get_latest_vid: static/{latest_file}')
-    socketio.emit('set_latest_vid','static/'+latest_file)
+# @socketio.on('get_latest_vid')
+# def get_latest_vid():
+#     list_of_files = glob.glob('/home/bitnami/htdocs/static/*.mp4')
+#     # list_of_files = glob.glob('C:/Users/andye/Documents/static/*.mp4')
+#     latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
+#     logging.debug(f'get_latest_vid: static/{latest_file}')
+#     socketio.emit('set_latest_vid','static/'+latest_file)
 
 
 if __name__ == '__main__':
