@@ -24,6 +24,7 @@ print("---------------")
 
 # Temperature limits
 desired_temp = ""
+last_updated_time = ""
 upper_bound = 0.0
 lower_bound = 0.1
 
@@ -65,6 +66,8 @@ def get_temp():
     temp1 = float(temp1)
     temp2 = float(temp2)
     sio.emit('set_temp_from_probes', {"t1": temp1, "t2": temp2})
+    # Sends the current time to the SocketServer which then persists it and sends it on to the UI
+    sio.emit('set_time_last_updated', datetime.now().strftime("%Y-%m-%d_%H:%M:%S"))
 
 # This is called by the SocketServer to set the update period
 @sio.on("set_update_period")
@@ -74,11 +77,13 @@ def set_update_period(time_seconds):
     global update_period, desired_temp
     update_period = int(time_seconds)
 
+# Called by html to set the required temperature
 @sio.on("set_required_temp")
 def set_required_temp(required_temp):
     logging.debug(f"Setting required temp to: {required_temp}")
     global desired_temp
     desired_temp = int(required_temp)
+
 
 # This turns the relay on for a certain amount of time
 @sio.on("set_relay_state")
@@ -194,6 +199,7 @@ def control_temp_relay():
 
 def send_temp_to_server():
     while True:
+
         get_temp()
         logging.debug(f'Sleeping for {update_period} seconds')
         sleep_time = update_period

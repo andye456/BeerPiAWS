@@ -19,9 +19,9 @@ socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeo
 current_pos = 0
 
 # Write the temp and time period to a file.
-def _write_save_data(temp, period):
+def _write_save_data(temp, period, last_update):
     with open("save_data.txt", "w") as f:
-        f.write(f'{temp} {period}')
+        f.write(f'{temp} {period} {last_update}')
 
 # Opens the file containing the last used values
 def _read_save_data():
@@ -29,12 +29,12 @@ def _read_save_data():
         with open("save_data.txt", "r") as f:
             for line in f:
                 d = line.split()
-                return d[0], d[1]
+                return d[0], d[1], d[2]
     except FileNotFoundError as f:
-        # if file does not exist then use vals 20 deg and 300 seconds (5 mins)
-        return 20,300
+        # if file does not exist then use vals 20 deg and 300 seconds (5 mins) and some arbitrary time
+        return 20,300,"1970-01-01 00:00:00"
 
-req_temp,req_update_period = _read_save_data()
+req_temp,req_update_period, last_time_updated = _read_save_data()
 relay_state= {"1": {"state": False}, "2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
 
 
@@ -45,6 +45,7 @@ def connect():
     # Called when the web page connects
     socketio.emit("update_req_period", req_update_period) # This is to update the web page and the val stored in Rpi
     socketio.emit("set_required_temp", req_temp) # this is to update the web page and val stored in RPi
+    socketio.emit("set_UI_last_updated",last_time_updated)
     logging.debug("Sending Relay state....")
     # This is a bit back-to-front, it 'calls' a function in the client to then 'emit' the relay states to here
     socketio.emit("get_relay_state") # this emits to update_relay_state as RLY1set is controlled by the RPi
@@ -58,10 +59,11 @@ def get_temp_from_pi():
 @socketio.on("set_update_period")
 def set_update_period(time_seconds):
     logging.debug("set_update_period " + str(time_seconds))
-    global req_update_period, req_temp
+    global req_update_period, req_temp, last_time_updated
     req_update_period = int(time_seconds)
     socketio.emit("set_update_period", time_seconds)
-    _write_save_data(req_temp, req_update_period)
+    _write_save_data(req_temp, req_update_period,last_time_updated)
+
 # This is called from the html and sends the value on to the RPi
 @socketio.on("set_required_temp")
 def set_required_temp(required_temp):
@@ -130,6 +132,15 @@ def get_latest_snap(pos):
 #     latest_file = os.path.basename(max(list_of_files, key=os.path.getctime))
 #     logging.debug(f'get_latest_vid: static/{latest_file}')
 #     socketio.emit('set_latest_vid','static/'+latest_file)
+
+# Called from the PRi every time the temp is updated
+@socketio.on("set_time_last_updated")
+def set_time_last_updated(datetime_str):
+    global req_update_period, req_temp
+    # store this value in the data file
+    _write_save_data(req_temp, req_update_period, datetime_str)
+    socketio.emit("set_UI_last_updated",datetime_str)
+
 
 
 if __name__ == '__main__':
