@@ -4,3 +4,4 @@ temp_data*.csv
 *.log
 Sender/w1_slave1
 Sender/w1_slave2
+save_data.txt

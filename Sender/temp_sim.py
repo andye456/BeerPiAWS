@@ -2,10 +2,10 @@ import random, time
 import math
 
 up = True
-t1min = 220
-t1max = 300
-t2min = 200
-t2max = 1000
+t1min = 0
+t1max = 140
+t2min = 0
+t2max = 120
 step = 5
 time_period = 60
 while True:

@@ -70,10 +70,10 @@ show_graph = function (day) {
                 .attr("transform", "rotate(90)")
                 .style("text-anchor", "start")
             ;
-
+            max_val = getTopN(data) + 10;
             // Add Y axis
             var y = d3.scaleLinear()
-                .domain([0, 100])
+                .domain([0,max_val])
                 .range([height, 0]);
             svg.append("g")
                 .call(d3.axisLeft(y));
@@ -208,5 +208,21 @@ function getDateTime(d) {
 
     // return year + "-" + month + "-" + day + "T" + hour + ":" + imn + ":" + sec;
     return day + "-" + month + "-" + year;
+
+}
+
+// Finds the max form the 2 temp values in the array of readings
+function getTopN(arr) {
+
+    t1 = [];
+    t2 = [];
+    arr.forEach((x) => {
+       t1.push(parseFloat(x.temp1));
+       t2.push(parseFloat(x.temp2));
+    });
+    t1_max = Math.max(...t1);
+    t2_max = Math.max(...t2);
+
+    return Math.max(t1_max,t2_max);
 
 }
