@@ -70,7 +70,7 @@ show_graph = function (day) {
                 .attr("transform", "rotate(90)")
                 .style("text-anchor", "start")
             ;
-            max_val = getTopN(data) + 10;
+            max_val = getTopN(data) + 5;
             // Add Y axis
             var y = d3.scaleLinear()
                 .domain([0,max_val])
