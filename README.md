@@ -73,9 +73,9 @@ cd to the BeerPiAWS directory and run `git stash`, `git pull` on both.
 
 run `chmod a+x setup.sh; setup.sh` on both
 
-ON the Pi cd to Sender and run `python Client.py` (Actually reset the Pi and this will start automatically))
+ON the Pi cd to Sender and run `python SocketClient.py` (Actually reset the Pi and this will start automatically))
 
-On AWS cd to Receiver and run `nohup python Server.py &`
+On AWS cd to Receiver and run `nohup python SocketServer.py &`
 
 Browse to <my AWS ip>/beer.html
 

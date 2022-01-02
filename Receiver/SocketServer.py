@@ -13,6 +13,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeout=300)
 
 # List position of the photo list
@@ -36,7 +37,6 @@ def _read_save_data():
 
 req_temp,req_update_period, last_time_updated = _read_save_data()
 relay_state= {"1": {"state": False}, "2": {"state": False}, "3": {"state": False}, "4": {"state": False}}
-
 
 
 @socketio.on('connect')
@@ -105,6 +105,34 @@ def update_relay_state(r_state):
 @socketio.on('set_relay_state')
 def set_relay_state(relay_state):
     socketio.emit("set_relay_state", relay_state)
+
+# This is an endpoint so that a query string can be used to set the relay state the values expected.
+# To set the relay state then pass a json string like this - this is derived from the checkbox on the web page
+# {'1': {'state': False, 'timeout': ''}, '2': {'state': True, 'timeout': ''}, '3': {'state': False, 'timeout': ''}, '4': {'state': False, 'timeout': ''}}
+# /set_relay_state/1.False.0~2.True.0~3.False.0~4.False.0
+@app.route('/set_relay_state/<numstate>', methods=['GET'])
+def relay_state(numstate):
+    logging.debug('Setting relays via url')
+    r1 = numstate.split('~')[0]
+    r2 = numstate.split('~')[1]
+    r3 = numstate.split('~')[2]
+    r4 = numstate.split('~')[3]
+    all_states = {
+        r1.split('.')[0]:{'state':r1.split('.')[1], 'timeout':r1.split('.')[2]},
+        r2.split('.')[0]:{'state':r2.split('.')[1], 'timeout':r2.split('.')[2]},
+        r3.split('.')[0]:{'state':r3.split('.')[1], 'timeout':r3.split('.')[2]},
+        r4.split('.')[0]:{'state':r4.split('.')[1], 'timeout':r4.split('.')[2]}
+                  }
+    set_relay_state(all_states)
+    return ""
+
+# @app.route('/')
+# def home():
+#     return '<h1><a href="/beer">Goto RPi Beer</h1>'
+
+@app.route('/beer')
+def beer_home():
+    return render_template("beer.html", number=1)
 
 @socketio.on("camera")
 def camera(cmd):

@@ -9,8 +9,8 @@ import RPi.GPIO as GPIO
 from threading import Thread
 import traceback
 
-logging.basicConfig(filename='client.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+# logging.basicConfig(filename='client.log', level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # logger = logging.getLogger(__name__)
 # logger.setLevel('DEBUG')
@@ -45,7 +45,7 @@ GPIO.setup(RLY2, GPIO.OUT)
 GPIO.setup(RLY3, GPIO.OUT)
 GPIO.setup(RLY4, GPIO.OUT)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # This is a 'global' - done as a mutable (right way to do it)
 relay_1_state = {'isRelayOn': False}
@@ -250,6 +250,7 @@ def _take_video():
 def _scp_file(file):
     username="bitnami"
     remote="35.176.56.125"
+    # remote="localhost"
     dir="/opt/bitnami/apache2/htdocs/static"
     logging.info(f"Sending file {file} to {username}@{remote}:{dir}")
 
@@ -263,6 +264,7 @@ def dissconnect():
 
 
 if __name__ == "__main__":
+    logging.info("Connecting to server")
     sio.connect(host)
     # uses the temperature to control the main relay
     Thread(target=control_temp_relay).start()
