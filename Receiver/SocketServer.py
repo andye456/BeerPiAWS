@@ -11,7 +11,7 @@ from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='') # need this static_url_path to serve files from the static directory.
 app.config['SECRET_KEY'] = 'secret!'
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins='*', ping_interval=300, ping_timeout=300)
@@ -81,7 +81,7 @@ def set_temp_from_probes(temps):
     today = datetime.now()
     date_string = today.strftime("%d-%m-%Y_%H-%M-%S")
     file_date = today.strftime("%d-%m-%Y")
-    csv_file = f"temp_files/temp_data_{file_date}.csv"
+    csv_file = f"static/temp_files/temp_data_{file_date}.csv" # need to include 'static' as D3 is looking for a local file ref
     with open(csv_file,'a') as f:
         logging.debug(f'Logging to file {csv_file}')
         if os.stat(csv_file).st_size == 0:
@@ -146,12 +146,12 @@ def get_latest_snap(pos):
     current_pos = current_pos+pos
     if pos == 0:
         current_pos = 0
-    list_of_files = glob.glob('/home/bitnami/htdocs/static/*.jpg')
-    # list_of_files = glob.glob('C:/Users/andye/PycharmProjects/BeerPiAWS/static/*.jpg')
+    # list_of_files = glob.glob('/home/bitnami/htdocs/static/*.jpg')
+    list_of_files = glob.glob('static/picture_files/*.jpg')
     list_of_files.sort(key=os.path.getctime)
     latest_file = os.path.basename(list_of_files[current_pos - 1])
     logging.debug(f'get_latest_snap: {pos} {latest_file}')
-    socketio.emit('set_latest_snap','static/'+latest_file)
+    socketio.emit('set_latest_snap','picture_files/'+latest_file)
 
 # @socketio.on('get_latest_vid')
 # def get_latest_vid():

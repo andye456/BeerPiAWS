@@ -24,9 +24,9 @@ show_graph = function (day) {
     today = getDateTime(day);
 //Read the data
     d3.select('#today_date').text(today);
-    tmp_file = "temp_data_" + today + ".csv";
+    tmp_file = "temp_files/temp_data_" + today + ".csv";
     console.log(tmp_file);
-    d3.csv("Receiver/temp_files/temp_data_" + today + ".csv",
+    d3.csv(tmp_file,
         function (d) {
             // format date fields
             return {time: d3.timeParse("%d-%m-%Y_%H-%M-%S")(d.time), temp1: d.temp1, temp2: d.temp2, relay1: d.relay1}
