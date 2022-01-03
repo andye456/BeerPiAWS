@@ -105,3 +105,12 @@ while true; do
         sleep 1
 done
 ```
+# Alexa Integration
+## Alexa Skills
+This is a good place to start
+
+https://github.com/dabblelab/2-alexa-remote-api-example-skill
+
+## Amazon Developer Account
+You need one of these - free to sign up to, well it was for me, I already have 
+AWS accounts, not sure if this makes any difference.

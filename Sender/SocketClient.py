@@ -53,6 +53,8 @@ relay_2_state = {'isRelayOn': False}
 relay_3_state = {'isRelayOn': False}
 relay_4_state = {'isRelayOn': False}
 
+remote = '18.168.124.146'
+
 @sio.event
 def connect():
     logging.info('Connection estabished')
@@ -249,10 +251,10 @@ def _take_video():
 
 def _scp_file(file):
     username="bitnami"
-    remote="35.176.56.125"
+    # remote="35.176.56.125"
     # remote="localhost"
     # dir="/opt/bitnami/apache2/htdocs/static"
-    dir="/opt/bitnami/BeerPiAWS/Receiver/static/picture_files"
+    dir="/home/bitnami/BeerPiAWS/Receiver/static/picture_files"
     logging.info(f"Sending file {file} to {username}@{remote}:{dir}")
 
     try:

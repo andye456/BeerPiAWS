@@ -105,10 +105,12 @@ def update_relay_state(r_state):
 @socketio.on('set_relay_state')
 def set_relay_state(relay_state):
     socketio.emit("set_relay_state", relay_state)
+    return
 
-# This is an endpoint so that a query string can be used to set the relay state the values expected.
-# To set the relay state then pass a json string like this - this is derived from the checkbox on the web page
+# This is an endpoint so that a url can be used to set the relay state
+# To set the relay state we need to pass a json string like this to set_relay_state(s) - this can be derived from the checkbox on the web page
 # {'1': {'state': False, 'timeout': ''}, '2': {'state': True, 'timeout': ''}, '3': {'state': False, 'timeout': ''}, '4': {'state': False, 'timeout': ''}}
+# For the URL we use the following format:
 # /set_relay_state/1.False.0~2.True.0~3.False.0~4.False.0
 @app.route('/set_relay_state/<numstate>', methods=['GET'])
 def relay_state(numstate):
@@ -124,7 +126,7 @@ def relay_state(numstate):
         r4.split('.')[0]:{'state':r4.split('.')[1], 'timeout':r4.split('.')[2]}
                   }
     set_relay_state(all_states)
-    return ""
+    return {'state': all_states}
 
 # @app.route('/')
 # def home():
